@@ -32,7 +32,7 @@ function map(after, before, radius, zoom) {
     'Hike': '#00FF00',
   };
   
-  var activitiesUrl = new URL('/json', window.location.origin);
+  var activitiesUrl = new URL('/activities', window.location.origin);
   if (after) {
     activitiesUrl.searchParams.append('after', after);
   }
