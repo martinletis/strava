@@ -22,14 +22,11 @@
 <script src='/static/map.js'></script>
 <script>
 function initMap() {
-  // https://www.nsw.gov.au/media-releases/increased-fines-test-and-isolate-payments-and-new-compliance-measures-as-nsw-battles
-  AFTER = 1629036060
-
-  map(AFTER, undefined, 5000, 13);
+  map({{after}}, {{before}}, {{radius}}, {{zoom}});
 }
 </script>
 <script async
-    src='https://maps.googleapis.com/maps/api/js?key=AIzaSyB-0WxuQXLD92Y70ge80b57gGFimu4zvYc&callback=initMap&libraries=geometry'>
+    src='https://maps.googleapis.com/maps/api/js?key={{api_key}}&callback=initMap&libraries=geometry'>
 </script>
 
 </body>
