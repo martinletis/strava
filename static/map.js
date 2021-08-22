@@ -12,10 +12,10 @@ function map(after, before, radius, zoom) {
           position: results[0].geometry.location
       });
       var circle = new google.maps.Circle({
-        strokeColor: '#FF0000',
+        strokeColor: 'red',
         strokeOpacity: 0.4,
-        strokeWeight: 2,
-        fillColor: '#FF0000',
+        strokeWeight: 1,
+        fillColor: 'red',
         fillOpacity: 0.05,
         map,
         center: results[0].geometry.location,
@@ -24,6 +24,16 @@ function map(after, before, radius, zoom) {
     } else {
       alert('Geocode was not successful for the following reason: ' + status);
     }
+  });
+  
+  // http://data.cityofsydney.nsw.gov.au/datasets/the-city-of-sydney-local-government-area-2
+  map.data.loadGeoJson('https://opendata.arcgis.com/datasets/6e8360afd7f9499ab9425b2d17db730d_0.geojson');
+  map.data.setStyle({
+    strokeColor: 'blue',
+    strokeOpacity: 0.4,
+    strokeWeight: 1,
+    fillColor: 'blue',
+    fillOpacity: 0.05,
   });
   
   var colors = {
@@ -39,6 +49,7 @@ function map(after, before, radius, zoom) {
   if (before) {
     activitiesUrl.searchParams.append('before', before);
   }
+  
   fetch(activitiesUrl)
   .then(response => response.json())
   .then(activities => activities.forEach(activity => new google.maps.Polyline({
