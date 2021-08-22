@@ -13,10 +13,10 @@ function map(after, before, radius, zoom) {
       });
       var circle = new google.maps.Circle({
         strokeColor: 'red',
-        strokeOpacity: 0.4,
+        strokeOpacity: 0.6,
         strokeWeight: 1,
         fillColor: 'red',
-        fillOpacity: 0.05,
+        fillOpacity: 0.02,
         map,
         center: results[0].geometry.location,
         radius: radius,
@@ -30,10 +30,10 @@ function map(after, before, radius, zoom) {
   map.data.loadGeoJson('https://opendata.arcgis.com/datasets/6e8360afd7f9499ab9425b2d17db730d_0.geojson');
   map.data.setStyle({
     strokeColor: 'blue',
-    strokeOpacity: 0.4,
+    strokeOpacity: 0.6,
     strokeWeight: 1,
     fillColor: 'blue',
-    fillOpacity: 0.05,
+    fillOpacity: 0.02,
   });
   
   var colors = {
