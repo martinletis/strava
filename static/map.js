@@ -1,5 +1,6 @@
 function map(after, before, radius, zoom) {
   var map = new google.maps.Map(document.getElementById('map'), {
+    mapTypeId: google.maps.MapTypeId.TERRAIN,
     zoom: zoom,
   });
   var geocoder = new google.maps.Geocoder();
