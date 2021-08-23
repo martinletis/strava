@@ -19,7 +19,7 @@
 
 <div id='map' />
 
-<script src='/static/map.js'></script>
+<script src='{{ url_for('static', filename='map.js') }}'></script>
 <script>
 function initMap() {
   map({{after}}, {{before}}, {{radius}}, {{zoom}});
