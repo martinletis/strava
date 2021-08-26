@@ -15,6 +15,11 @@ app = flask.Flask(__name__)
 datastore_client = datastore.Client()
 
 
+@app.route("/all")
+def all():
+  return render(after="undefined", before="undefined", radius=10000, zoom=12)
+
+
 @app.route("/5k")
 def five():
   return render(after=_5K_AFTER, before="undefined", radius=5000, zoom=13)
