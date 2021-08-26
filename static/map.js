@@ -3,8 +3,8 @@ function map(after, before, radius, zoom) {
     mapTypeId: google.maps.MapTypeId.TERRAIN,
     zoom: zoom,
   });
-  var geocoder = new google.maps.Geocoder();
 
+  var geocoder = new google.maps.Geocoder();
   geocoder.geocode({'address': '149-197 Pyrmont Street, Pyrmont NSW 2009, Australia'}, function(results, status) {
     if (status == 'OK') {
       map.setCenter(results[0].geometry.location);
