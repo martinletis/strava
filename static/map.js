@@ -1,4 +1,4 @@
-function map(after, before, radius, zoom) {
+function map(after, before, per_page, radius, zoom) {
   var map = new google.maps.Map(document.getElementById('map'), {
     mapTypeId: google.maps.MapTypeId.TERRAIN,
     zoom: zoom,
@@ -43,6 +43,9 @@ function map(after, before, radius, zoom) {
   }
   if (before) {
     activitiesUrl.searchParams.append('before', before);
+  }
+  if (per_page) {
+    activitiesUrl.searchParams.append('per_page', per_page);
   }
   fetchActivities(activitiesUrl, map, 1);
 }

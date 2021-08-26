@@ -17,17 +17,32 @@ datastore_client = datastore.Client()
 
 @app.route("/all")
 def all():
-  return render(after="undefined", before="undefined", radius=10000, zoom=12)
+  return render(
+      after="undefined",
+      before="undefined",
+      per_page=100,
+      radius=10000,
+      zoom=12)
 
 
 @app.route("/5k")
 def five():
-  return render(after=_5K_AFTER, before="undefined", radius=5000, zoom=13)
+  return render(
+      after=_5K_AFTER,
+      before="undefined",
+      per_page="undefined",
+      radius=5000,
+      zoom=13)
 
 
 @app.route("/10k")
 def ten():
-  return render(after=_10K_AFTER, before=_10K_BEFORE, radius=10000, zoom=12)
+  return render(
+      after=_10K_AFTER,
+      before=_10K_BEFORE,
+      per_page="undefined",
+      radius=10000,
+      zoom=12)
 
 
 @app.route("/activities")
@@ -86,7 +101,7 @@ def refresh_token(token):
     datastore_client.put(token)
 
 
-def render(after, before, radius, zoom):
+def render(after, before, per_page, radius, zoom):
   api_key = os.getenv("API_KEY")
   if api_key is None:
     flask.abort(503, "Invalid API_KEY")
@@ -94,6 +109,7 @@ def render(after, before, radius, zoom):
       "map.html",
       after=after,
       before=before,
+      per_page=per_page,
       api_key=api_key,
       radius=radius,
       zoom=zoom)
