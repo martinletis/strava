@@ -29,12 +29,18 @@ def ten():
 def activities():
   after = flask.request.args.get("after")
   before = flask.request.args.get("before")
+  page = flask.request.args.get("page")
+  per_page = flask.request.args.get("per_page")
 
   params = {}
   if (after):
     params["after"] = after
   if (before):
     params["before"] = before
+  if (page):
+    params["page"] = page
+  if (per_page):
+    params["per_page"] = per_page
 
   activitiesUrl = urllib.parse.urlparse(
       "https://www.strava.com/api/v3/athlete/activities")

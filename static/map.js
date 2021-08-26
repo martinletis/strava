@@ -37,12 +37,6 @@ function map(after, before, radius, zoom) {
     fillOpacity: 0.02,
   });
   
-  var colors = {
-    'Walk': '#0000FF',
-    'Ride': '#FF0000',
-    'Hike': '#00FF00',
-  };
-  
   var activitiesUrl = new URL('/activities', window.location.origin);
   if (after) {
     activitiesUrl.searchParams.append('after', after);
@@ -50,15 +44,31 @@ function map(after, before, radius, zoom) {
   if (before) {
     activitiesUrl.searchParams.append('before', before);
   }
-  
+  fetchActivities(activitiesUrl, map, 1);
+}
+
+function fetchActivities(activitiesUrl, map, page) {
+  activitiesUrl.searchParams.set('page', page);
+
+  var colors = {
+    'Walk': '#0000FF',
+    'Ride': '#FF0000',
+    'Hike': '#00FF00',
+  };
+
   fetch(activitiesUrl)
   .then(response => response.json())
-  .then(activities => activities.forEach(activity => new google.maps.Polyline({
-    path: google.maps.geometry.encoding.decodePath(activity.map.summary_polyline),
-    strokeColor: colors[activity.type],
-    strokeOpacity: 0.4,
-    strokeWeight: 6,
-    map: map
-  })));
+  .then(activities => {
+    activities.forEach(activity => new google.maps.Polyline({
+      path: google.maps.geometry.encoding.decodePath(activity.map.summary_polyline),
+      strokeColor: colors[activity.type],
+      strokeOpacity: 0.4,
+      strokeWeight: 6,
+      map: map
+    }));
+    if (activities.length > 0) {
+      fetchActivities(activitiesUrl, map, page+1);
+    }
+  });
 }
 
