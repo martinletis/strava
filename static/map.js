@@ -51,9 +51,14 @@ function fetchActivities(activitiesUrl, map, page) {
   activitiesUrl.searchParams.set('page', page);
 
   var colors = {
-    'Walk': '#0000FF',
-    'Ride': '#FF0000',
-    'Hike': '#00FF00',
+    'Walk': 'blue',
+    'Ride': 'red',
+    'Hike': 'yellow',
+  };
+  var opacity = {
+    'Walk': 0.4,
+    'Ride': 0.4,
+    'Hike': 0.6,
   };
 
   fetch(activitiesUrl)
@@ -62,7 +67,7 @@ function fetchActivities(activitiesUrl, map, page) {
     activities.forEach(activity => new google.maps.Polyline({
       path: google.maps.geometry.encoding.decodePath(activity.map.summary_polyline),
       strokeColor: colors[activity.type],
-      strokeOpacity: 0.4,
+      strokeOpacity: opacity[activity.type],
       strokeWeight: 6,
       map: map
     }));
