@@ -8,20 +8,23 @@ function map(after, before, per_page, radius, zoom) {
   geocoder.geocode({'address': '149-197 Pyrmont Street, Pyrmont NSW 2009, Australia'}, function(results, status) {
     if (status == 'OK') {
       map.setCenter(results[0].geometry.location);
-      var marker = new google.maps.Marker({
+      new google.maps.Marker({
           map: map,
           position: results[0].geometry.location
       });
-      var circle = new google.maps.Circle({
-        strokeColor: 'red',
-        strokeOpacity: 0.6,
-        strokeWeight: 1,
-        fillColor: 'red',
-        fillOpacity: 0.02,
-        map,
-        center: results[0].geometry.location,
-        radius: radius,
-      });
+      
+      if (radius) {
+        new google.maps.Circle({
+          strokeColor: 'red',
+          strokeOpacity: 0.6,
+          strokeWeight: 1,
+          fillColor: 'red',
+          fillOpacity: 0.02,
+          map,
+          center: results[0].geometry.location,
+          radius: radius,
+        });
+      }
     } else {
       alert('Geocode was not successful for the following reason: ' + status);
     }

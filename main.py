@@ -21,8 +21,8 @@ def all():
       after="undefined",
       before="undefined",
       per_page=100,
-      radius=10000,
-      zoom=12)
+      radius="undefined",
+      zoom=11)
 
 
 @app.route("/5k")
