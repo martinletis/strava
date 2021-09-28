@@ -11,6 +11,10 @@ _10K_AFTER = 1625814000
 # https://www.nsw.gov.au/media-releases/increased-fines-test-and-isolate-payments-and-new-compliance-measures-as-nsw-battles
 _10K_BEFORE = _5K_AFTER = 1629036060
 
+# https://www.nsw.gov.au/media-releases/roadmap-to-freedom-unveiled-for-fully-vaccinated
+# https://www.nsw.gov.au/media-releases/roadmap-to-recovery-reveals-path-forward-for-all-nsw
+_5K_BEFORE = 1633870860
+
 app = flask.Flask(__name__)
 datastore_client = datastore.Client()
 
@@ -29,7 +33,7 @@ def all():
 def five():
   return render(
       after=_5K_AFTER,
-      before="undefined",
+      before=_5K_BEFORE,
       per_page="undefined",
       radius=5000,
       zoom=13)
