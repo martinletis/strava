@@ -1,4 +1,4 @@
-runtime: python39
+runtime: python310
 
 env_variables:
   API_KEY: "AIzaSyB-0WxuQXLD92Y70ge80b57gGFimu4zvYc"
