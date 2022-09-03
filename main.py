@@ -19,6 +19,7 @@ app = flask.Flask(__name__)
 datastore_client = datastore.Client()
 
 
+@app.route("/")
 @app.route("/all")
 def all():
   return render(
