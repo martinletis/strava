@@ -66,61 +66,6 @@ const WIDTH = {
   'Hike': 1.4,
 };
 
-function fetchActivities(activitiesUrl, Graphic, view, page) {
-  activitiesUrl.searchParams.set('page', page);
-
-  fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
-    .then(response => response.json())
-    .then(activities => {
-      activities.forEach(activity => {
-        const paths = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
-        const polylineGraphic = new Graphic({
-          geometry: {
-            type: 'polyline',
-            paths: paths,
-          },
-          symbol: {
-            type: 'simple-line',
-            color: COLORS[activity.sport_type],
-            width: WIDTH[activity.sport_type],
-          },
-          attributes: {
-            Id: activity.id,
-            Name: activity.name,
-            SportType: activity.sport_type,
-            StartDate: new Date(activity.start_date).toString(),
-            Distance: (Math.round(activity.distance / 10) / 100).toLocaleString(),
-            MovingTime: new Date(activity.moving_time * 1000).toISOString().substr(11, 8),
-            TotalElevationGain: activity.total_elevation_gain.toLocaleString(),
-            AverageWatts: activity.average_watts ? activity.average_watts.toLocaleString() : 'NaN',
-            KiloJoules: activity.kilojoules ? activity.kilojoules.toLocaleString() : 'NaN',
-            AvgSpeed: (Math.round(activity.average_speed * 3600 / 100) / 10).toLocaleString(),
-            MaxSpeed: (Math.round(activity.max_speed * 3600 / 100) / 10).toLocaleString(),
-            ElapsedTime: new Date(activity.elapsed_time * 1000).toISOString().substr(11, 8),
-            
-          },
-          popupTemplate: {
-            title: '<b>{Name}</b><br/><small>{StartDate}</small>',
-            content: 
-              'Distance: <b>{Distance} km</b><br/>' + 
-              'Moving Time: <b>{MovingTime}</b><br/>' + 
-              'Elevation: <b>{TotalElevationGain} m</b><br/>' + 
-              'Estimated Avg Power: <b>{AverageWatts} w</b><br/>' + 
-              'Energy Output: <b>{KiloJoules} kJ</b><br/>' + 
-              'Avg Speed: <b>{AvgSpeed} km/h</b><br/>' + 
-              'Max Speed: <b>{MaxSpeed} km/h</b><br/>' + 
-              'Elapsed time: <b>{ElapsedTime}</b><br/><br/>' +
-              '<a href="https://www.strava.com/activities/{Id}">https://www.strava.com/activities/{Id}</a>',
-          },
-        });
-        view.graphics.add(polylineGraphic);
-      });
-      if (activities.length > 0) {
-        fetchActivities(activitiesUrl, Graphic, view, page+1);
-      }
-    });  
-}
-
 const access_token = initAuth();
 
 require([
@@ -169,8 +114,62 @@ require([
   });
   view.ui.add(basemapToggle, 'bottom-right');
 
+  const fetchActivities = function(activitiesUrl, page) {
+    activitiesUrl.searchParams.set('page', page);
+
+    fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
+      .then(response => response.json())
+      .then(activities => {
+        activities.forEach(activity => {
+          const paths = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
+          const polylineGraphic = new Graphic({
+            geometry: {
+              type: 'polyline',
+              paths: paths,
+            },
+            symbol: {
+              type: 'simple-line',
+              color: COLORS[activity.sport_type],
+              width: WIDTH[activity.sport_type],
+            },
+            attributes: {
+              Id: activity.id,
+              Name: activity.name,
+              SportType: activity.sport_type,
+              StartDate: new Date(activity.start_date).toString(),
+              Distance: (Math.round(activity.distance / 10) / 100).toLocaleString(),
+              MovingTime: new Date(activity.moving_time * 1000).toISOString().substr(11, 8),
+              TotalElevationGain: activity.total_elevation_gain.toLocaleString(),
+              AverageWatts: activity.average_watts ? activity.average_watts.toLocaleString() : 'NaN',
+              KiloJoules: activity.kilojoules ? activity.kilojoules.toLocaleString() : 'NaN',
+              AvgSpeed: (Math.round(activity.average_speed * 3600 / 100) / 10).toLocaleString(),
+              MaxSpeed: (Math.round(activity.max_speed * 3600 / 100) / 10).toLocaleString(),
+              ElapsedTime: new Date(activity.elapsed_time * 1000).toISOString().substr(11, 8),
+              
+            },
+            popupTemplate: {
+              title: '<b>{Name}</b><br/><small>{StartDate}</small>',
+              content: 
+                'Distance: <b>{Distance} km</b><br/>' + 
+                'Moving Time: <b>{MovingTime}</b><br/>' + 
+                'Elevation: <b>{TotalElevationGain} m</b><br/>' + 
+                'Estimated Avg Power: <b>{AverageWatts} w</b><br/>' + 
+                'Energy Output: <b>{KiloJoules} kJ</b><br/>' + 
+                'Avg Speed: <b>{AvgSpeed} km/h</b><br/>' + 
+                'Max Speed: <b>{MaxSpeed} km/h</b><br/>' + 
+                'Elapsed time: <b>{ElapsedTime}</b><br/><br/>' +
+                '<a href="https://www.strava.com/activities/{Id}">https://www.strava.com/activities/{Id}</a>',
+            },
+          });
+          view.graphics.add(polylineGraphic);
+        });
+        if (activities.length > 0) {
+          fetchActivities(activitiesUrl, page+1);
+        }
+      });  
+  }
+
   var activitiesUrl = new URL('https://www.strava.com/api/v3/athlete/activities');
-  // activitiesUrl.searchParams.append('after', 1633870860);
   activitiesUrl.searchParams.append('per_page', 100);
-  fetchActivities(activitiesUrl, Graphic, view, 1);
+  fetchActivities(activitiesUrl, 1);
 });
