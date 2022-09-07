@@ -73,7 +73,6 @@ function fetchActivities(activitiesUrl, Graphic, view, page) {
     .then((response) => response.json())
     .then((activities) => {
       activities.forEach(activity => {
-        console.log(activity);
         const paths = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
         const polylineGraphic = new Graphic({
           geometry: {
