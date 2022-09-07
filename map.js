@@ -103,8 +103,7 @@ require([
   // TODO(martin.letis): auto-center
   const view = new MapView({
     map: map,
-    center: [151.20, -33.85],
-    zoom: 11,
+    zoom: 3,
     container: 'viewDiv',
   });
 
@@ -162,6 +161,10 @@ require([
             },
           });
           view.graphics.add(polylineGraphic);
+
+          if (view.graphics.length == 5) {
+            view.goTo(view.graphics.toArray());
+          }
         });
         if (activities.length > 0) {
           fetchActivities(activitiesUrl, page+1);
