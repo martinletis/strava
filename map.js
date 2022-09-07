@@ -29,7 +29,7 @@ function initAuth() {
     authorizeUrl.searchParams.append('client_id', CLIENT_ID);
     authorizeUrl.searchParams.append('redirect_uri', redirectUrl.toString());
     authorizeUrl.searchParams.append('response_type', 'code');
-    authorizeUrl.searchParams.append('scope', 'activity:read');
+    authorizeUrl.searchParams.append('scope', 'read,activity:read');
     window.location.replace(authorizeUrl.toString());
     return;
   }
