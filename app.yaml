@@ -1,7 +1,0 @@
-runtime: python310
-
-env_variables:
-  API_KEY: "AIzaSyB-0WxuQXLD92Y70ge80b57gGFimu4zvYc"
-  CLIENT_ID: "69382"
-  CLIENT_SECRET: "5bcd3a399f4c849a2ffadf249eccecabbbaddca9"
-
