@@ -15,8 +15,8 @@ function initAuth() {
     tokenUrl.searchParams.append('code', url.searchParams.get('code'));
     tokenUrl.searchParams.append('grant_type', 'authorization_code');
     fetch(tokenUrl, {method: 'POST'})
-      .then((response) => response.json())
-      .then((data) => {
+      .then(response => response.json())
+      .then(data => {
         window.localStorage.setItem('token', JSON.stringify(data));
         window.location.replace(redirectUrl.toString())
       });
@@ -44,8 +44,8 @@ function initAuth() {
     tokenUrl.searchParams.append('grant_type', 'refresh_token');
     tokenUrl.searchParams.append('refresh_token', token.refresh_token);
     fetch(tokenUrl, {method: 'POST'})
-      .then((response) => response.json())
-      .then((data) => {
+      .then(response => response.json())
+      .then(data => {
         window.localStorage.setItem('token', JSON.stringify(data));
         window.location.replace(redirectUrl.toString())
       });
@@ -70,8 +70,8 @@ function fetchActivities(activitiesUrl, Graphic, view, page) {
   activitiesUrl.searchParams.set('page', page);
 
   fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
-    .then((response) => response.json())
-    .then((activities) => {
+    .then(response => response.json())
+    .then(activities => {
       activities.forEach(activity => {
         const paths = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
         const polylineGraphic = new Graphic({
