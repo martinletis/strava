@@ -1,4 +1,4 @@
-function initAuth() {
+function initMap() {
   const CLIENT_ID = 69382;
   const CLIENT_SECRET = '5bcd3a399f4c849a2ffadf249eccecabbbaddca9';
 
@@ -52,127 +52,127 @@ function initAuth() {
     return;
   }
 
-  return token.access_token;
-}
+  const access_token = token.access_token;
 
-const COLORS = {
-  'Walk': 'blue',
-  'Ride': 'red',
-  'Hike': 'green',
-};
-const WIDTH = {
-  'Walk': 1.0,
-  'Ride': 1.0,
-  'Hike': 1.4,
-};
-
-const access_token = initAuth();
-
-require([
-  'esri/config',
-  'esri/Graphic',
-  'esri/Map',
-  'esri/views/MapView',
-  'esri/layers/FeatureLayer',
-  'esri/widgets/BasemapToggle',
-], function (esriConfig, Graphic, Map, MapView, FeatureLayer, BasemapToggle) {
-  esriConfig.apiKey = 'AAPKf03cf57d366c4959839d3651bebe9518WLMakWBAkZ0QSXyTkbg4NStT8jUqv5zKfS46AM5Aiipk5YS40KMImE2t8xzqBp_4';
-  
-  const cityOfSydneyLayer = new FeatureLayer({
-    portalItem: {
-      id: '6e8360afd7f9499ab9425b2d17db730d',
-    },
-    renderer: {
-      type: 'simple',
-      symbol: {
-        type: 'simple-fill',
-        color: [255, 255, 0, 0.02],
-        outline: {
-          color: [255, 255, 0, 1],
-          width: 0.2,
+  require([
+    'esri/config',
+    'esri/Graphic',
+    'esri/Map',
+    'esri/views/MapView',
+    'esri/layers/FeatureLayer',
+    'esri/widgets/BasemapToggle',
+  ], function (esriConfig, Graphic, Map, MapView, FeatureLayer, BasemapToggle) {
+    esriConfig.apiKey = 'AAPKf03cf57d366c4959839d3651bebe9518WLMakWBAkZ0QSXyTkbg4NStT8jUqv5zKfS46AM5Aiipk5YS40KMImE2t8xzqBp_4';
+    
+    const cityOfSydneyLayer = new FeatureLayer({
+      portalItem: {
+        id: '6e8360afd7f9499ab9425b2d17db730d',
+      },
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-fill',
+          color: [255, 255, 0, 0.02],
+          outline: {
+            color: [255, 255, 0, 1],
+            width: 0.2,
+          },
         },
       },
-    },
-  });
+    });
 
-  const map = new Map({
-    basemap: 'arcgis-terrain',
-    // layers: [cityOfSydneyLayer],
-  });
+    const map = new Map({
+      basemap: 'arcgis-terrain',
+      // layers: [cityOfSydneyLayer],
+    });
 
-  // TODO(martin.letis): auto-center
-  const view = new MapView({
-    map: map,
-    zoom: 3,
-    container: 'viewDiv',
-  });
+    // TODO(martin.letis): auto-center
+    const view = new MapView({
+      map: map,
+      zoom: 3,
+      container: 'viewDiv',
+    });
 
-  const basemapToggle = new BasemapToggle({
-    view: view,
-    nextBasemap: 'arcgis-light-gray'
-  });
-  view.ui.add(basemapToggle, 'bottom-right');
+    const basemapToggle = new BasemapToggle({
+      view: view,
+      nextBasemap: 'arcgis-light-gray'
+    });
+    view.ui.add(basemapToggle, 'bottom-right');
 
-  const fetchActivities = function(activitiesUrl, page) {
-    activitiesUrl.searchParams.set('page', page);
+    const COLORS = {
+      'Walk': 'blue',
+      'Ride': 'red',
+      'Hike': 'green',
+    };
+    const WIDTH = {
+      'Walk': 1.0,
+      'Ride': 1.0,
+      'Hike': 1.4,
+    };
 
-    fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
-      .then(response => response.json())
-      .then(activities => {
-        activities.forEach(activity => {
-          const paths = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
-          const polylineGraphic = new Graphic({
-            geometry: {
-              type: 'polyline',
-              paths: paths,
-            },
-            symbol: {
-              type: 'simple-line',
-              color: COLORS[activity.sport_type],
-              width: WIDTH[activity.sport_type],
-            },
-            attributes: {
-              Id: activity.id,
-              Name: activity.name,
-              SportType: activity.sport_type,
-              StartDate: new Date(activity.start_date).toString(),
-              Distance: (Math.round(activity.distance / 10) / 100).toLocaleString(),
-              MovingTime: new Date(activity.moving_time * 1000).toISOString().substr(11, 8),
-              TotalElevationGain: activity.total_elevation_gain.toLocaleString(),
-              AverageWatts: activity.average_watts ? activity.average_watts.toLocaleString() : 'NaN',
-              KiloJoules: activity.kilojoules ? activity.kilojoules.toLocaleString() : 'NaN',
-              AvgSpeed: (Math.round(activity.average_speed * 3600 / 100) / 10).toLocaleString(),
-              MaxSpeed: (Math.round(activity.max_speed * 3600 / 100) / 10).toLocaleString(),
-              ElapsedTime: new Date(activity.elapsed_time * 1000).toISOString().substr(11, 8),
-              
-            },
-            popupTemplate: {
-              title: '<b>{Name}</b><br/><small>{StartDate}</small>',
-              content: 
-                'Distance: <b>{Distance} km</b><br/>' + 
-                'Moving Time: <b>{MovingTime}</b><br/>' + 
-                'Elevation: <b>{TotalElevationGain} m</b><br/>' + 
-                'Estimated Avg Power: <b>{AverageWatts} w</b><br/>' + 
-                'Energy Output: <b>{KiloJoules} kJ</b><br/>' + 
-                'Avg Speed: <b>{AvgSpeed} km/h</b><br/>' + 
-                'Max Speed: <b>{MaxSpeed} km/h</b><br/>' + 
-                'Elapsed time: <b>{ElapsedTime}</b><br/><br/>' +
-                '<a href="https://www.strava.com/activities/{Id}">https://www.strava.com/activities/{Id}</a>',
-            },
+    const fetchActivities = function(activitiesUrl, page) {
+      activitiesUrl.searchParams.set('page', page);
+
+      fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
+        .then(response => response.json())
+        .then(activities => {
+          activities.forEach(activity => {
+            const paths = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
+            const polylineGraphic = new Graphic({
+              geometry: {
+                type: 'polyline',
+                paths: paths,
+              },
+              symbol: {
+                type: 'simple-line',
+                color: COLORS[activity.sport_type],
+                width: WIDTH[activity.sport_type],
+              },
+              attributes: {
+                Id: activity.id,
+                Name: activity.name,
+                SportType: activity.sport_type,
+                StartDate: new Date(activity.start_date).toString(),
+                Distance: (Math.round(activity.distance / 10) / 100).toLocaleString(),
+                MovingTime: new Date(activity.moving_time * 1000).toISOString().substr(11, 8),
+                TotalElevationGain: activity.total_elevation_gain.toLocaleString(),
+                AverageWatts: activity.average_watts ? activity.average_watts.toLocaleString() : 'NaN',
+                KiloJoules: activity.kilojoules ? activity.kilojoules.toLocaleString() : 'NaN',
+                AvgSpeed: (Math.round(activity.average_speed * 3600 / 100) / 10).toLocaleString(),
+                MaxSpeed: (Math.round(activity.max_speed * 3600 / 100) / 10).toLocaleString(),
+                ElapsedTime: new Date(activity.elapsed_time * 1000).toISOString().substr(11, 8),
+                
+              },
+              popupTemplate: {
+                title: '<b>{Name}</b><br/><small>{StartDate}</small>',
+                content: 
+                  'Distance: <b>{Distance} km</b><br/>' + 
+                  'Moving Time: <b>{MovingTime}</b><br/>' + 
+                  'Elevation: <b>{TotalElevationGain} m</b><br/>' + 
+                  'Estimated Avg Power: <b>{AverageWatts} w</b><br/>' + 
+                  'Energy Output: <b>{KiloJoules} kJ</b><br/>' + 
+                  'Avg Speed: <b>{AvgSpeed} km/h</b><br/>' + 
+                  'Max Speed: <b>{MaxSpeed} km/h</b><br/>' + 
+                  'Elapsed time: <b>{ElapsedTime}</b><br/><br/>' +
+                  '<a href="https://www.strava.com/activities/{Id}">https://www.strava.com/activities/{Id}</a>',
+              },
+            });
+            view.graphics.add(polylineGraphic);
+
+            if (view.graphics.length == 5) {
+              view.goTo(view.graphics.toArray());
+            }
           });
-          view.graphics.add(polylineGraphic);
-
-          if (view.graphics.length == 5) {
-            view.goTo(view.graphics.toArray());
+          if (activities.length > 0) {
+            fetchActivities(activitiesUrl, page+1);
           }
-        });
-        if (activities.length > 0) {
-          fetchActivities(activitiesUrl, page+1);
-        }
-      });  
-  }
+        });  
+    }
 
-  var activitiesUrl = new URL('https://www.strava.com/api/v3/athlete/activities');
-  activitiesUrl.searchParams.append('per_page', 100);
-  fetchActivities(activitiesUrl, 1);
-});
+    var activitiesUrl = new URL('https://www.strava.com/api/v3/athlete/activities');
+    activitiesUrl.searchParams.append('per_page', 100);
+    fetchActivities(activitiesUrl, 1);
+  });
+}
+
+initMap();
