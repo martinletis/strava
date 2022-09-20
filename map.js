@@ -87,11 +87,8 @@ function initMap() {
       // layers: [cityOfSydneyLayer],
     });
 
-    // TODO(martin.letis): auto-center
     const view = new MapView({
       map: map,
-      zoom: 3,
-      container: 'viewDiv',
     });
 
     const basemapToggle = new BasemapToggle({
@@ -160,12 +157,16 @@ function initMap() {
             });
             view.graphics.add(polylineGraphic);
 
+            // TODO(martin.letis): smart auto-center based on activity distance
             if (view.graphics.length == 5) {
-              view.goTo(view.graphics.toArray());
+              view.goTo(view.graphics.toArray(), {animate: false});
+              view.container = 'viewDiv';
             }
           });
           if (activities.length > 0) {
             fetchActivities(activitiesUrl, page+1);
+          } else {
+            view.container = 'viewDiv';
           }
         });  
     }
