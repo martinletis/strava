@@ -64,22 +64,23 @@ function initMap() {
   ], function (esriConfig, Graphic, Map, MapView, FeatureLayer, BasemapToggle) {
     esriConfig.apiKey = 'AAPKf03cf57d366c4959839d3651bebe9518WLMakWBAkZ0QSXyTkbg4NStT8jUqv5zKfS46AM5Aiipk5YS40KMImE2t8xzqBp_4';
     
-    const cityOfSydneyLayer = new FeatureLayer({
-      portalItem: {
-        id: '6e8360afd7f9499ab9425b2d17db730d',
-      },
-      renderer: {
-        type: 'simple',
-        symbol: {
-          type: 'simple-fill',
-          color: [255, 255, 0, 0.02],
-          outline: {
-            color: [255, 255, 0, 1],
-            width: 0.2,
-          },
-        },
-      },
-    });
+    // TODO(martin.letis): use layer for lockdown activities
+    // const cityOfSydneyLayer = new FeatureLayer({
+    //   portalItem: {
+    //     id: '6e8360afd7f9499ab9425b2d17db730d',
+    //   },
+    //   renderer: {
+    //     type: 'simple',
+    //     symbol: {
+    //       type: 'simple-fill',
+    //       color: [255, 255, 0, 0.02],
+    //       outline: {
+    //         color: [255, 255, 0, 1],
+    //         width: 0.2,
+    //       },
+    //     },
+    //   },
+    // });
 
     const map = new Map({
       basemap: 'arcgis-terrain',
