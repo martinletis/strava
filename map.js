@@ -264,8 +264,16 @@ function initMap(position) {
             }
           });
 
-          // Recursive call for next page.
           if (activities.length > 0) {
+            // Get oldest activity date.
+            // TODO(martin.letis): is the oldest activity always last?
+            const activity_start_dates = activities.map(activity => new Date(activity.start_date).getTime());
+            const activity_start_date = new Date(Math.min(...activity_start_dates));
+            activity_start_date.setHours(0, 0, 0, 0);
+
+            timeSlider.fullTimeExtent.start = new Date(Math.min(timeSlider.fullTimeExtent.start, activity_start_date));
+
+            // Recursive call for next page.
             fetchActivities(activitiesUrl, page + 1);
             return;
           }
@@ -276,15 +284,6 @@ function initMap(position) {
             document.getElementById('titleText').innerHTML = 'No activities found on Strava';
             return;
           }
-
-          // Get oldest activity date.
-          // TODO(martin.letis): is the oldest activity always last?
-          const activity_start_dates = view.graphics.toArray().map(g => new Date(g.attributes.StartDate).getTime());
-          const activity_start_date = new Date(Math.min(...activity_start_dates));
-          activity_start_date.setHours(0, 0, 0, 0);
-
-          // Set slider to full extent.
-          timeSlider.fullTimeExtent.start = new Date(Math.min(timeSlider.fullTimeExtent.start, activity_start_date));
 
           // Enable slider.
           timeSlider.disabled = false;
