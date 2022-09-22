@@ -184,15 +184,6 @@ function initMap(position) {
           console.error('Invalid action ID: ' + event.action.id);
       }
     });
-
-    timeSlider.watch('timeExtent', () => {
-      // TODO(martin.letis): Improve visibility handlers
-      view.graphics.toArray().forEach(g => {
-        const activity_start_date = new Date(g.attributes.StartDate);
-        g.visible = activity_start_date >= timeSlider.timeExtent.start && activity_start_date <= timeSlider.timeExtent.end;
-      });
-    });
-
     view.ui.add(timeSlider, 'manual');
 
     const COLORS = {
@@ -253,9 +244,14 @@ function initMap(position) {
                   'Elapsed time: <b>{ElapsedTime}</b><br/><br/>' +
                   '<a href="https://www.strava.com/activities/{Id}">https://www.strava.com/activities/{Id}</a>',
               },
-              // TODO(martin.letis): Improve visibility handlers
               visible: activity_start_date >= timeSlider.timeExtent.start && activity_start_date <= timeSlider.timeExtent.end,
             });
+
+            // TODO(martin.letis): deduplicate visibility logic, trigger handler immediately?
+            timeSlider.watch('timeExtent', timeExtent => {
+              polylineGraphic.visible = activity_start_date >= timeExtent.start && activity_start_date <= timeExtent.end;
+            });
+
             view.graphics.add(polylineGraphic);
 
             // If the view isn't already centered with 'position', center on the most recent activity.
