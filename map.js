@@ -1,4 +1,4 @@
-function initMap() {
+function initAuth() {
   const CLIENT_ID = 69382;
   const CLIENT_SECRET = '5bcd3a399f4c849a2ffadf249eccecabbbaddca9';
 
@@ -52,7 +52,15 @@ function initMap() {
     return;
   }
 
-  const access_token = token.access_token;
+  return token.access_token;
+}
+
+function initMap() {
+  const access_token = initAuth();
+
+  if (!access_token) {
+    return;
+  }
 
   require([
     'esri/config',
