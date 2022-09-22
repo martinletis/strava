@@ -102,6 +102,8 @@ function initMap(position) {
       container: position ? 'viewDiv' : undefined,
     });
 
+    view.ui.add('titleDiv', 'top-right');
+
     const basemapToggle = new BasemapToggle({
       view: view,
       nextBasemap: 'arcgis-light-gray'
@@ -178,13 +180,18 @@ function initMap(position) {
           // Recursive call for next page.
           if (activities.length > 0) {
             fetchActivities(activitiesUrl, page + 1);
+            return;
           }
 
-          // No activities found, error and exit.
-          if (activities.length == 0 && view.graphics.length == 0) {
+          if (view.graphics.length == 0) {
+            // No activities found, error and exit.
             console.error('No activities found on Strava');
-            alert('No activities found on Strava')
+            document.getElementById('titleText').innerHTML = 'No activities found on Strava';
+            return;
           }
+
+          // Loading complete, remove loading message.
+          view.ui.remove('titleDiv');
         });  
     }
 
