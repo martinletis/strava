@@ -69,7 +69,8 @@ function initMap(position) {
     'esri/views/MapView',
     'esri/layers/FeatureLayer',
     'esri/widgets/BasemapToggle',
-  ], function (esriConfig, Graphic, Map, MapView, FeatureLayer, BasemapToggle) {
+    'esri/widgets/TimeSlider',
+  ], function (esriConfig, Graphic, Map, MapView, FeatureLayer, BasemapToggle, TimeSlider) {
     esriConfig.apiKey = 'AAPKf03cf57d366c4959839d3651bebe9518WLMakWBAkZ0QSXyTkbg4NStT8jUqv5zKfS46AM5Aiipk5YS40KMImE2t8xzqBp_4';
     
     // TODO(martin.letis): use layer for lockdown activities
@@ -110,6 +111,90 @@ function initMap(position) {
     });
     view.ui.add(basemapToggle, 'bottom-right');
 
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate() + 1);
+
+    const timeSlider = new TimeSlider({
+      actions: [
+        {
+          id: 'all',
+          icon: 'content-full',
+          title: 'All Time',
+        },
+        {
+          id: 'lockdown10k',
+          icon: 'lock',
+          title: 'Sydney 10k Lockdown',
+        },
+        {
+          id: 'lockdown5k',
+          icon: 'lock',
+          title: 'Sydney 5k Lockdown',
+        },
+      ],
+      container: 'timeSlider',
+      disabled: true,
+      fullTimeExtent: {
+        'end': end,
+        'start': start,
+      },
+      mode: 'time-window',
+      stops: {
+        interval: {
+          value: 1,
+          unit: 'days',
+        },
+      },
+      timeExtent: {
+       'end': end,
+       'start': start,
+      },
+      view: view,
+    });
+
+    // https://www.nsw.gov.au/media-releases/covid-19-restrictions-tightened-across-greater-sydney
+    const _10K_START = new Date(1625814000000);
+
+    // https://www.nsw.gov.au/media-releases/increased-fines-test-and-isolate-payments-and-new-compliance-measures-as-nsw-battles
+    const _10K_END = new Date(1629036060000);
+
+    // https://www.nsw.gov.au/media-releases/roadmap-to-freedom-unveiled-for-fully-vaccinated
+    // https://www.nsw.gov.au/media-releases/roadmap-to-recovery-reveals-path-forward-for-all-nsw
+    const _5K_END = new Date(1633870860000);
+
+    timeSlider.on('trigger-action', event => {
+      switch(event.action.id) {
+        case 'all':
+          timeSlider.timeExtent = timeSlider.fullTimeExtent;
+          break;
+        case 'lockdown10k':
+          timeSlider.timeExtent = {
+            start: _10K_START,
+            end: _10K_END,
+          };
+          break;
+        case 'lockdown5k':
+          timeSlider.timeExtent = {
+            start: _10K_END,
+            end: _5K_END,
+          };
+          break;
+        default:
+          console.error('Invalid action ID: ' + event.action.id);
+      }
+    });
+
+    timeSlider.watch('timeExtent', () => {
+      // TODO(martin.letis): Improve visibility handlers
+      view.graphics.toArray().forEach(g => {
+        const activity_start_date = new Date(g.attributes.StartDate);
+        g.visible = activity_start_date >= timeSlider.timeExtent.start && activity_start_date <= timeSlider.timeExtent.end;
+      });
+    });
+
+    view.ui.add(timeSlider, 'manual');
+
     const COLORS = {
       'Walk': 'blue',
       'Ride': 'red',
@@ -128,6 +213,7 @@ function initMap(position) {
         .then(response => response.json())
         .then(activities => {
           activities.forEach(activity => {
+            const activity_start_date = new Date(activity.start_date);
             const paths = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
             const polylineGraphic = new Graphic({
               geometry: {
@@ -143,7 +229,7 @@ function initMap(position) {
                 Id: activity.id,
                 Name: activity.name,
                 SportType: activity.sport_type,
-                StartDate: new Date(activity.start_date).toString(),
+                StartDate: activity_start_date.toString(),
                 Distance: (Math.round(activity.distance / 10) / 100).toLocaleString(),
                 MovingTime: new Date(activity.moving_time * 1000).toISOString().substr(11, 8),
                 TotalElevationGain: activity.total_elevation_gain.toLocaleString(),
@@ -167,6 +253,8 @@ function initMap(position) {
                   'Elapsed time: <b>{ElapsedTime}</b><br/><br/>' +
                   '<a href="https://www.strava.com/activities/{Id}">https://www.strava.com/activities/{Id}</a>',
               },
+              // TODO(martin.letis): Improve visibility handlers
+              visible: activity_start_date >= timeSlider.timeExtent.start && activity_start_date <= timeSlider.timeExtent.end,
             });
             view.graphics.add(polylineGraphic);
 
@@ -190,7 +278,19 @@ function initMap(position) {
             return;
           }
 
-          // Loading complete, remove loading message.
+          // Get oldest activity date.
+          // TODO(martin.letis): is the oldest activity always last?
+          const activity_start_dates = view.graphics.toArray().map(g => new Date(g.attributes.StartDate).getTime());
+          const activity_start_date = new Date(Math.min(...activity_start_dates));
+          activity_start_date.setHours(0, 0, 0, 0);
+
+          // Set slider to full extent.
+          timeSlider.fullTimeExtent.start = new Date(Math.min(timeSlider.fullTimeExtent.start, activity_start_date));
+
+          // Enable slider.
+          timeSlider.disabled = false;
+
+          // Remove loading message.
           view.ui.remove('titleDiv');
         });  
     }
