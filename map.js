@@ -73,27 +73,27 @@ function initMap(position) {
   ], function (esriConfig, Graphic, Map, MapView, FeatureLayer, BasemapToggle, TimeSlider) {
     esriConfig.apiKey = 'AAPKf03cf57d366c4959839d3651bebe9518WLMakWBAkZ0QSXyTkbg4NStT8jUqv5zKfS46AM5Aiipk5YS40KMImE2t8xzqBp_4';
     
-    // TODO(martin.letis): use layer for lockdown activities
-    // const cityOfSydneyLayer = new FeatureLayer({
-    //   portalItem: {
-    //     id: '6e8360afd7f9499ab9425b2d17db730d',
-    //   },
-    //   renderer: {
-    //     type: 'simple',
-    //     symbol: {
-    //       type: 'simple-fill',
-    //       color: [255, 255, 0, 0.02],
-    //       outline: {
-    //         color: [255, 255, 0, 1],
-    //         width: 0.2,
-    //       },
-    //     },
-    //   },
-    // });
+    const cityOfSydneyLayer = new FeatureLayer({
+      portalItem: {
+        id: '6e8360afd7f9499ab9425b2d17db730d',
+      },
+      renderer: {
+        type: 'simple',
+        symbol: {
+          type: 'simple-fill',
+          color: [255, 255, 0, 0.1],
+          outline: {
+            color: [255, 255, 0, 1],
+            width: 0.2,
+          },
+        },
+      },
+      visible: false,
+    });
 
     const map = new Map({
       basemap: 'arcgis-terrain',
-      // layers: [cityOfSydneyLayer],
+      layers: [cityOfSydneyLayer],
     });
 
     const view = new MapView({
@@ -183,6 +183,9 @@ function initMap(position) {
         default:
           console.error('Invalid action ID: ' + event.action.id);
       }
+    });
+    timeSlider.watch('timeExtent', timeExtent => {
+      cityOfSydneyLayer.visible = timeExtent.start >= _10K_END && timeExtent.end <= _5K_END;
     });
     view.ui.add(timeSlider, 'manual');
 
