@@ -55,7 +55,7 @@ function initAuth() {
   return token.access_token;
 }
 
-function initMap() {
+function initMap(position) {
   const access_token = initAuth();
 
   if (!access_token) {
@@ -97,6 +97,9 @@ function initMap() {
 
     const view = new MapView({
       map: map,
+      center: position ? [position.coords.longitude, position.coords.latitude] : undefined,
+      zoom: 12,
+      container: position ? 'viewDiv' : undefined,
     });
 
     const basemapToggle = new BasemapToggle({
@@ -165,16 +168,22 @@ function initMap() {
             });
             view.graphics.add(polylineGraphic);
 
-            // TODO(martin.letis): smart auto-center based on activity distance
-            if (view.graphics.length == 5) {
+            // If the view isn't already centered with 'position', center on the most recent activity.
+            if (!view.center && view.graphics.length == 1) {
               view.goTo(view.graphics.toArray(), {animate: false});
               view.container = 'viewDiv';
             }
           });
+
+          // Recursive call for next page.
           if (activities.length > 0) {
-            fetchActivities(activitiesUrl, page+1);
-          } else {
-            view.container = 'viewDiv';
+            fetchActivities(activitiesUrl, page + 1);
+          }
+
+          // No activities found, error and exit.
+          if (activities.length == 0 && view.graphics.length == 0) {
+            console.error('No activities found on Strava');
+            alert('No activities found on Strava')
           }
         });  
     }
@@ -185,4 +194,14 @@ function initMap() {
   });
 }
 
-initMap();
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    position => initMap(position),
+    positionError => {
+      console.warn(positionError);
+      initMap();
+    });
+} else {
+  console.warn('Geolocation not available');
+  initMap();
+}
