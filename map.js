@@ -156,6 +156,11 @@ function initMap(position) {
           title: 'All Time',
         },
         {
+          id: '1y',
+          icon: 'calendar',
+          title: 'Last Year',
+        },
+        {
           id: 'lockdown10k',
           icon: 'lock',
           title: 'Sydney 10k Lockdown',
@@ -200,6 +205,12 @@ function initMap(position) {
       switch(event.action.id) {
         case 'all':
           timeSlider.timeExtent = timeSlider.fullTimeExtent;
+          break;
+        case '1y':
+          timeSlider.timeExtent = {
+           'end': end,
+           'start': start,
+          };
           break;
         case 'lockdown10k':
           timeSlider.timeExtent = {
