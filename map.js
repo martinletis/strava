@@ -67,10 +67,11 @@ function initMap(position) {
     'esri/Graphic',
     'esri/Map',
     'esri/views/MapView',
+    'esri/geometry/Circle',
     'esri/layers/FeatureLayer',
     'esri/widgets/BasemapToggle',
     'esri/widgets/TimeSlider',
-  ], function (esriConfig, Graphic, Map, MapView, FeatureLayer, BasemapToggle, TimeSlider) {
+  ], function (esriConfig, Graphic, Map, MapView, Circle, FeatureLayer, BasemapToggle, TimeSlider) {
     esriConfig.apiKey = 'AAPKf03cf57d366c4959839d3651bebe9518WLMakWBAkZ0QSXyTkbg4NStT8jUqv5zKfS46AM5Aiipk5YS40KMImE2t8xzqBp_4';
     
     const cityOfSydneyLayer = new FeatureLayer({
@@ -110,6 +111,38 @@ function initMap(position) {
       nextBasemap: 'arcgis-light-gray'
     });
     view.ui.add(basemapToggle, 'bottom-right');
+
+    const circle5k = new Graphic({
+      geometry: new Circle({
+        center: [151.19562741241154, -33.87180353506704],
+        geodesic: true,
+        radius: 5,
+        radiusUnit: "kilometers",
+      }),
+      symbol: {
+        type: 'simple-line',
+        color: 'blue',
+        width: 0.8,
+      },
+      visible: false,
+    });
+    view.graphics.add(circle5k);
+
+    const circle10k = new Graphic({
+      geometry: new Circle({
+        center: [151.19562741241154, -33.87180353506704],
+        geodesic: true,
+        radius: 10,
+        radiusUnit: "kilometers",
+      }),
+      symbol: {
+        type: 'simple-line',
+        color: 'blue',
+        width: 0.8,
+      },
+      visible: false,
+    });
+    view.graphics.add(circle10k);
 
     const now = new Date();
     const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -185,7 +218,8 @@ function initMap(position) {
       }
     });
     timeSlider.watch('timeExtent', timeExtent => {
-      cityOfSydneyLayer.visible = timeExtent.start >= _10K_END && timeExtent.end <= _5K_END;
+      circle10k.visible = timeExtent.start >= _10K_START && timeExtent.end <= _10K_END;
+      circle5k.visible = cityOfSydneyLayer.visible = timeExtent.start >= _10K_END && timeExtent.end <= _5K_END;
     });
     view.ui.add(timeSlider, 'manual');
 
