@@ -117,7 +117,7 @@ function initMap(position) {
         center: [151.19562741241154, -33.87180353506704],
         geodesic: true,
         radius: 5,
-        radiusUnit: "kilometers",
+        radiusUnit: 'kilometers',
       }),
       symbol: {
         type: 'simple-line',
@@ -133,7 +133,7 @@ function initMap(position) {
         center: [151.19562741241154, -33.87180353506704],
         geodesic: true,
         radius: 10,
-        radiusUnit: "kilometers",
+        radiusUnit: 'kilometers',
       }),
       symbol: {
         type: 'simple-line',
