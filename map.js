@@ -302,9 +302,9 @@ function initMap(position) {
 
             view.graphics.add(polylineGraphic);
 
-            // If the view isn't already centered with 'position', center on the most recent activity.
-            if (!view.center && view.graphics.length == 1) {
-              view.goTo(view.graphics.toArray(), {animate: false});
+            // If the view isn't already centered - by 'position' or a previous activity - center it on this activity.
+            if (!view.center) {
+              view.goTo(polylineGraphic, {animate: false});
               view.container = 'viewDiv';
             }
           });
