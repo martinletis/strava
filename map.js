@@ -217,12 +217,14 @@ function initMap(position) {
             start: _10K_START,
             end: _10K_END,
           };
+          view.goTo(circle10k);
           break;
         case 'lockdown5k':
           timeSlider.timeExtent = {
             start: _10K_END,
             end: _5K_END,
           };
+          view.goTo(circle5k);
           break;
         default:
           console.error('Invalid action ID: ' + event.action.id);
