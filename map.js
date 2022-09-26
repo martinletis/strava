@@ -156,9 +156,9 @@ function initMap(position) {
           title: 'All Time',
         },
         {
-          id: '1y',
+          id: '12m',
           icon: 'calendar',
-          title: 'Last Year',
+          title: 'Last 12 Months',
         },
         {
           id: 'lockdown10k',
@@ -206,7 +206,7 @@ function initMap(position) {
         case 'all':
           timeSlider.timeExtent = timeSlider.fullTimeExtent;
           break;
-        case '1y':
+        case '12m':
           timeSlider.timeExtent = {
            'end': end,
            'start': start,
