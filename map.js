@@ -241,12 +241,14 @@ function initMap(position) {
       'Ride': 'red',
       'Hike': 'green',
       'Sail': 'black',
+      'Run': 'brown',
     };
     const WIDTH = {
       'Walk': 1.0,
       'Ride': 1.0,
       'Hike': 1.4,
       'Sail': 1.0,
+      'Run': 1.0,
     };
 
     const fetchActivities = function(activitiesUrl, page) {
