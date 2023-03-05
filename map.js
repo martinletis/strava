@@ -240,15 +240,15 @@ function initMap(position) {
       'Walk': 'blue',
       'Ride': 'red',
       'Hike': 'green',
-      'Sail': 'black',
       'Run': 'brown',
+      'Sail': 'yellow',
     };
     const WIDTH = {
       'Walk': 1.0,
       'Ride': 1.0,
       'Hike': 1.4,
+      'Run': 0.8,
       'Sail': 1.0,
-      'Run': 1.0,
     };
 
     const fetchActivities = function(activitiesUrl, page) {
@@ -267,8 +267,8 @@ function initMap(position) {
               },
               symbol: {
                 type: 'simple-line',
-                color: COLORS[activity.sport_type],
-                width: WIDTH[activity.sport_type],
+                color: COLORS[activity.sport_type] ?? 'black',
+                width: WIDTH[activity.sport_type] ?? 1.0,
               },
               attributes: {
                 Id: activity.id,
