@@ -39,7 +39,6 @@ def main(argv):
     logging.info('Writing to %s: %s', FLAGS.file, r.json())
     with open(FLAGS.file, 'w') as f:
       json.dump(r.json(), f)
-    return
 
   try:
     with open(FLAGS.file) as f:
