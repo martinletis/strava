@@ -17,34 +17,44 @@
     <style>
       html,
       body,
-      #viewDiv {
+      arcgis-map {
         padding: 0;
         margin: 0;
         height: 100%;
         width: 100%;
       }
-      #timeSlider {
+      .esri-time-slider {
         position: absolute;
-        left: 5%;
-        right: 5%;
+        left: 20px;
         bottom: 20px;
-      }
-      #titleDiv {
-        padding: 10px;
-        font-weight: 36;
-        text-align: center;
+        width: 90%;
       }
     </style>
-    <link rel='stylesheet' href='https://js.arcgis.com/4.24/esri/themes/light/main.css'>
-    <script src='https://js.arcgis.com/4.24/'></script>
+
+    <!-- The esriConfig variable must be defined before adding the other esri libraries -->
+    <script>
+      var esriConfig = {
+        apiKey: 'AAPKf03cf57d366c4959839d3651bebe9518WLMakWBAkZ0QSXyTkbg4NStT8jUqv5zKfS46AM5Aiipk5YS40KMImE2t8xzqBp_4'
+      };
+    </script>
+
+    <!-- Load Calcite -->
+    <script type='module' src='https://js.arcgis.com/calcite-components/3.0.3/calcite.esm.js'></script>
+
+    <!-- Load the ArcGIS Maps SDK for JavaScript core API -->
+    <link rel='stylesheet' href='https://js.arcgis.com/4.32/esri/themes/light/main.css'>
+    <script src='https://js.arcgis.com/4.32/'></script>
+
+    <!-- Load map components -->
+    <script type='module' src='https://js.arcgis.com/map-components/4.32/arcgis-map-components.esm.js'></script>
+
     <script src='https://maps.googleapis.com/maps/api/js?libraries=geometry'></script>
-    <script src='map.js'></script>
   </head>
   <body>
-    <div id='viewDiv'></div>
-    <div id='timeSlider'></div>
-    <div id='titleDiv' class='esri-widget'>
-      <div id='titleText'>Loading...</div>
-    </div>
+    <arcgis-map basemap='arcgis/terrain' zoom='12'>
+      <arcgis-basemap-toggle position='bottom-right'></arcgis-basemap-toggle>
+      <arcgis-time-slider disabled mode='time-window' position='manual'></arcgis-time-slider>
+    </arcgis-map>
+    <script type='module' src='map.js' async></script>
   </body>
 </html>
