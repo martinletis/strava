@@ -5,9 +5,6 @@ function initAuth() {
   const CLIENT_ID = 69382;
   const CLIENT_SECRET = '5bcd3a399f4c849a2ffadf249eccecabbbaddca9';
 
-  const redirectUrl = new URL(url);
-  redirectUrl.search = '';
-
   // https://developers.strava.com/docs/authentication/#tokenexchange
   if (url.searchParams.has('code')) {
     const tokenUrl = new URL('https://www.strava.com/oauth/token');
@@ -15,24 +12,26 @@ function initAuth() {
     tokenUrl.searchParams.append('client_secret', CLIENT_SECRET);
     tokenUrl.searchParams.append('code', url.searchParams.get('code'));
     tokenUrl.searchParams.append('grant_type', 'authorization_code');
-    fetch(tokenUrl, {method: 'POST'})
+    url.searchParams.delete('code');
+    url.searchParams.delete('scope');
+    url.searchParams.delete('state');
+    console.log('Fetching token...');
+    return fetch(tokenUrl, {method: 'POST'})
       .then(response => response.json())
       .then(data => {
         window.localStorage.setItem('token', JSON.stringify(data));
-        window.location.replace(redirectUrl.toString())
+        window.location.replace(url.toString());
       });
-    return;
   }
 
   // https://developers.strava.com/docs/authentication/#detailsaboutrequestingaccess
   if (!window.localStorage.getItem('token')) {
     const authorizeUrl = new URL('https://www.strava.com/oauth/authorize');
     authorizeUrl.searchParams.append('client_id', CLIENT_ID);
-    authorizeUrl.searchParams.append('redirect_uri', redirectUrl.toString());
+    authorizeUrl.searchParams.append('redirect_uri', url.toString());
     authorizeUrl.searchParams.append('response_type', 'code');
     authorizeUrl.searchParams.append('scope', 'read,activity:read');
     window.location.replace(authorizeUrl.toString());
-    return;
   }
 
   const token = JSON.parse(window.localStorage.getItem('token'));
@@ -44,16 +43,16 @@ function initAuth() {
     tokenUrl.searchParams.append('client_secret', CLIENT_SECRET);
     tokenUrl.searchParams.append('grant_type', 'refresh_token');
     tokenUrl.searchParams.append('refresh_token', token.refresh_token);
-    fetch(tokenUrl, {method: 'POST'})
+    console.log('Refreshing token...');
+    return fetch(tokenUrl, {method: 'POST'})
       .then(response => response.json())
       .then(data => {
         window.localStorage.setItem('token', JSON.stringify(data));
-        window.location.replace(redirectUrl.toString())
+        return data.access_token;
       });
-    return;
   }
 
-  return token.access_token;
+  return Promise.resolve(token.access_token);
 }
 
 const arcgisMap = document.querySelector('arcgis-map');
@@ -237,20 +236,22 @@ const WIDTH = {
   'Sail': 1.0,
 };
 
-const fetchActivities = function(activitiesUrl, page=1) {
-  const access_token = initAuth();
+function fetchAuthActivities(access_token, page=1) {
   if (!access_token) {
     return;
   }
+  let activitiesUrl;
   if (debug) {
     // Run until empty results are returned:
     // curl -H "Authorization: Bearer ${TOKEN}" -X GET "https://www.strava.com/api/v3/athlete/activities?per_page=200&page=${PAGE}" | tee debug/activities-${PAGE} 
     activitiesUrl = new URL('/debug/activities-' + page, url)
   } else {
+    activitiesUrl = new URL('https://www.strava.com/api/v3/athlete/activities')
     activitiesUrl.searchParams.set('page', page);
+    activitiesUrl.searchParams.set('per_page', 100);
   }
 
-  fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
+  return fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
     .then(response => response.json())
     .then(activities => {
       activities.forEach(activity => {
@@ -318,7 +319,7 @@ const fetchActivities = function(activitiesUrl, page=1) {
         arcgisTimeSlider.fullTimeExtent.start = new Date(Math.min(arcgisTimeSlider.fullTimeExtent.start, activity_start_date));
 
         // Recursive call for next page.
-        fetchActivities(activitiesUrl, page + 1);
+        fetchAuthActivities(access_token, page + 1);
         return;
       }
 
@@ -327,6 +328,4 @@ const fetchActivities = function(activitiesUrl, page=1) {
     });  
 };
 
-var activitiesUrl = new URL('https://www.strava.com/api/v3/athlete/activities');
-activitiesUrl.searchParams.append('per_page', 100);
-fetchActivities(activitiesUrl);
+initAuth().then(fetchAuthActivities);
