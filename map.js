@@ -237,20 +237,17 @@ const WIDTH = {
   'Sail': 1.0,
 };
 
-function fetchActivities(page=1) {
+const fetchActivities = function(activitiesUrl, page=1) {
   const access_token = initAuth();
   if (!access_token) {
     return;
   }
-  let activitiesUrl;
   if (debug) {
     // Run until empty results are returned:
     // curl -H "Authorization: Bearer ${TOKEN}" -X GET "https://www.strava.com/api/v3/athlete/activities?per_page=200&page=${PAGE}" | tee debug/activities-${PAGE} 
     activitiesUrl = new URL('/debug/activities-' + page, url)
   } else {
-    activitiesUrl = new URL('https://www.strava.com/api/v3/athlete/activities')
     activitiesUrl.searchParams.set('page', page);
-    activitiesUrl.searchParams.set('per_page', 100);
   }
 
   fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
@@ -321,7 +318,7 @@ function fetchActivities(page=1) {
         arcgisTimeSlider.fullTimeExtent.start = new Date(Math.min(arcgisTimeSlider.fullTimeExtent.start, activity_start_date));
 
         // Recursive call for next page.
-        fetchActivities(page + 1);
+        fetchActivities(activitiesUrl, page + 1);
         return;
       }
 
@@ -330,4 +327,6 @@ function fetchActivities(page=1) {
     });  
 };
 
-window.fetchActivities = fetchActivities
+var activitiesUrl = new URL('https://www.strava.com/api/v3/athlete/activities');
+activitiesUrl.searchParams.append('per_page', 100);
+fetchActivities(activitiesUrl);

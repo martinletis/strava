@@ -48,6 +48,7 @@
     <!-- Load map components -->
     <script type='module' src='https://js.arcgis.com/map-components/4.32/arcgis-map-components.esm.js'></script>
 
+    <script src='https://maps.googleapis.com/maps/api/js?libraries=geometry'></script>
   </head>
   <body>
     <arcgis-map basemap='arcgis/terrain' zoom='12'>
@@ -55,6 +56,5 @@
       <arcgis-time-slider disabled mode='time-window' position='manual'></arcgis-time-slider>
     </arcgis-map>
     <script type='module' src='map.js' async></script>
-    <script src='https://maps.googleapis.com/maps/api/js?libraries=geometry&loading=async&callback=fetchActivities' async></script>
   </body>
 </html>
