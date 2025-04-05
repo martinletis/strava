@@ -138,14 +138,14 @@ const start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate() + 1)
 const arcgisTimeSlider = document.querySelector('arcgis-time-slider');
 arcgisTimeSlider.actions = [
   {
-    id: 'all',
-    icon: 'content-full',
-    title: 'All Time',
-  },
-  {
     id: '12m',
     icon: 'calendar',
     title: 'Last 12 Months',
+  },
+  {
+    id: 'all',
+    icon: 'calendar',
+    title: 'All Time',
   },
   {
     id: 'lockdown10k',
@@ -185,14 +185,14 @@ const _5K_END = new Date(1633870860000);
 
 arcgisTimeSlider.addEventListener('arcgisTriggerAction', event => {
   switch(event.detail.action.id) {
-    case 'all':
-      arcgisTimeSlider.timeExtent = arcgisTimeSlider.fullTimeExtent;
-      break;
     case '12m':
       arcgisTimeSlider.timeExtent = {
        'end': end,
        'start': start,
       };
+      break;
+    case 'all':
+      arcgisTimeSlider.timeExtent = arcgisTimeSlider.fullTimeExtent;
       break;
     case 'lockdown10k':
       arcgisTimeSlider.timeExtent = {
@@ -248,7 +248,7 @@ function fetchAuthActivities(access_token, page=1) {
   } else {
     activitiesUrl = new URL('https://www.strava.com/api/v3/athlete/activities')
     activitiesUrl.searchParams.set('page', page);
-    activitiesUrl.searchParams.set('per_page', 100);
+    activitiesUrl.searchParams.set('per_page', url.searchParams.get('per_page') || 100);
   }
 
   return fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
