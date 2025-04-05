@@ -1,8 +1,9 @@
+const url = new URL(window.location.href);
+const debug = url.searchParams.has('debug');
+
 function initAuth() {
   const CLIENT_ID = 69382;
   const CLIENT_SECRET = '5bcd3a399f4c849a2ffadf249eccecabbbaddca9';
-
-  const url = new URL(window.location.href);
 
   const redirectUrl = new URL(url);
   redirectUrl.search = '';
@@ -252,7 +253,13 @@ function initMap(position) {
     };
 
     const fetchActivities = function(activitiesUrl, page) {
-      activitiesUrl.searchParams.set('page', page);
+      if (debug) {
+        // Run until empty results are returned:
+        // curl -H "Authorization: Bearer ${TOKEN}" -X GET "https://www.strava.com/api/v3/athlete/activities?per_page=200&page=${PAGE}" | tee debug/activities-${PAGE} 
+        activitiesUrl = new URL('/debug/activities-' + page, url)
+      } else {
+        activitiesUrl.searchParams.set('page', page);
+      }
 
       fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
         .then(response => response.json())
