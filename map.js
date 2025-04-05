@@ -1,59 +1,4 @@
-const url = new URL(window.location.href);
-const debug = url.searchParams.has('debug');
-
-function initAuth() {
-  const CLIENT_ID = 69382;
-  const CLIENT_SECRET = '5bcd3a399f4c849a2ffadf249eccecabbbaddca9';
-
-  // https://developers.strava.com/docs/authentication/#tokenexchange
-  if (url.searchParams.has('code')) {
-    const tokenUrl = new URL('https://www.strava.com/oauth/token');
-    tokenUrl.searchParams.append('client_id', CLIENT_ID);
-    tokenUrl.searchParams.append('client_secret', CLIENT_SECRET);
-    tokenUrl.searchParams.append('code', url.searchParams.get('code'));
-    tokenUrl.searchParams.append('grant_type', 'authorization_code');
-    url.searchParams.delete('code');
-    url.searchParams.delete('scope');
-    url.searchParams.delete('state');
-    console.log('Fetching token...');
-    return fetch(tokenUrl, {method: 'POST'})
-      .then(response => response.json())
-      .then(data => {
-        window.localStorage.setItem('token', JSON.stringify(data));
-        window.location.replace(url.toString());
-      });
-  }
-
-  // https://developers.strava.com/docs/authentication/#detailsaboutrequestingaccess
-  if (!window.localStorage.getItem('token')) {
-    const authorizeUrl = new URL('https://www.strava.com/oauth/authorize');
-    authorizeUrl.searchParams.append('client_id', CLIENT_ID);
-    authorizeUrl.searchParams.append('redirect_uri', url.toString());
-    authorizeUrl.searchParams.append('response_type', 'code');
-    authorizeUrl.searchParams.append('scope', 'read,activity:read');
-    window.location.replace(authorizeUrl.toString());
-  }
-
-  const token = JSON.parse(window.localStorage.getItem('token'));
-
-  // https://developers.strava.com/docs/authentication/#refreshingexpiredaccesstokens
-  if (token.expires_at * 1000 < Date.now()) {
-    const tokenUrl = new URL('https://www.strava.com/oauth/token');
-    tokenUrl.searchParams.append('client_id', CLIENT_ID);
-    tokenUrl.searchParams.append('client_secret', CLIENT_SECRET);
-    tokenUrl.searchParams.append('grant_type', 'refresh_token');
-    tokenUrl.searchParams.append('refresh_token', token.refresh_token);
-    console.log('Refreshing token...');
-    return fetch(tokenUrl, {method: 'POST'})
-      .then(response => response.json())
-      .then(data => {
-        window.localStorage.setItem('token', JSON.stringify(data));
-        return data.access_token;
-      });
-  }
-
-  return Promise.resolve(token.access_token);
-}
+import { fetchActivities } from "./activities.js";
 
 const arcgisMap = document.querySelector('arcgis-map');
 
@@ -236,96 +181,74 @@ const WIDTH = {
   'Sail': 1.0,
 };
 
-function fetchAuthActivities(access_token, page=1) {
-  if (!access_token) {
-    return;
-  }
-  let activitiesUrl;
-  if (debug) {
-    // Run until empty results are returned:
-    // curl -H "Authorization: Bearer ${TOKEN}" -X GET "https://www.strava.com/api/v3/athlete/activities?per_page=200&page=${PAGE}" | tee debug/activities-${PAGE} 
-    activitiesUrl = new URL('/debug/activities-' + page, url)
-  } else {
-    activitiesUrl = new URL('https://www.strava.com/api/v3/athlete/activities')
-    activitiesUrl.searchParams.set('page', page);
-    activitiesUrl.searchParams.set('per_page', url.searchParams.get('per_page') || 100);
-  }
+const displayActivities = function(activities) {
+  activities.forEach(activity => {
+    const activity_start_date = new Date(activity.start_date);
+    const paths = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
+    const polylineGraphic = new Graphic({
+      geometry: {
+        type: 'polyline',
+        paths: paths,
+      },
+      symbol: {
+        type: 'simple-line',
+        color: COLORS[activity.sport_type] ?? 'black',
+        width: WIDTH[activity.sport_type] ?? 1.0,
+      },
+      attributes: {
+        Id: activity.id,
+        Name: activity.name,
+        SportType: activity.sport_type,
+        StartDate: activity_start_date.toString(),
+        Distance: (Math.round(activity.distance / 10) / 100).toLocaleString(),
+        MovingTime: new Date(activity.moving_time * 1000).toISOString().substr(11, 8),
+        TotalElevationGain: activity.total_elevation_gain.toLocaleString(),
+        AverageWatts: activity.average_watts ? activity.average_watts.toLocaleString() : 'NaN',
+        KiloJoules: activity.kilojoules ? activity.kilojoules.toLocaleString() : 'NaN',
+        AvgSpeed: (Math.round(activity.average_speed * 3600 / 100) / 10).toLocaleString(),
+        MaxSpeed: (Math.round(activity.max_speed * 3600 / 100) / 10).toLocaleString(),
+        ElapsedTime: new Date(activity.elapsed_time * 1000).toISOString().substr(11, 8),
+        
+      },
+      popupTemplate: {
+        title: '<b>{Name}</b><br/><small>{StartDate}</small>',
+        content: 
+          'Distance: <b>{Distance} km</b><br/>' + 
+          'Moving Time: <b>{MovingTime}</b><br/>' + 
+          'Elevation: <b>{TotalElevationGain} m</b><br/>' + 
+          'Estimated Avg Power: <b>{AverageWatts} w</b><br/>' + 
+          'Energy Output: <b>{KiloJoules} kJ</b><br/>' + 
+          'Avg Speed: <b>{AvgSpeed} km/h</b><br/>' + 
+          'Max Speed: <b>{MaxSpeed} km/h</b><br/>' + 
+          'Elapsed time: <b>{ElapsedTime}</b><br/><br/>' +
+          '<a href="https://www.strava.com/activities/{Id}">https://www.strava.com/activities/{Id}</a>',
+      },
+      visible: activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end,
+    });
 
-  return fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
-    .then(response => response.json())
-    .then(activities => {
-      activities.forEach(activity => {
-        const activity_start_date = new Date(activity.start_date);
-        const paths = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
-        const polylineGraphic = new Graphic({
-          geometry: {
-            type: 'polyline',
-            paths: paths,
-          },
-          symbol: {
-            type: 'simple-line',
-            color: COLORS[activity.sport_type] ?? 'black',
-            width: WIDTH[activity.sport_type] ?? 1.0,
-          },
-          attributes: {
-            Id: activity.id,
-            Name: activity.name,
-            SportType: activity.sport_type,
-            StartDate: activity_start_date.toString(),
-            Distance: (Math.round(activity.distance / 10) / 100).toLocaleString(),
-            MovingTime: new Date(activity.moving_time * 1000).toISOString().substr(11, 8),
-            TotalElevationGain: activity.total_elevation_gain.toLocaleString(),
-            AverageWatts: activity.average_watts ? activity.average_watts.toLocaleString() : 'NaN',
-            KiloJoules: activity.kilojoules ? activity.kilojoules.toLocaleString() : 'NaN',
-            AvgSpeed: (Math.round(activity.average_speed * 3600 / 100) / 10).toLocaleString(),
-            MaxSpeed: (Math.round(activity.max_speed * 3600 / 100) / 10).toLocaleString(),
-            ElapsedTime: new Date(activity.elapsed_time * 1000).toISOString().substr(11, 8),
-            
-          },
-          popupTemplate: {
-            title: '<b>{Name}</b><br/><small>{StartDate}</small>',
-            content: 
-              'Distance: <b>{Distance} km</b><br/>' + 
-              'Moving Time: <b>{MovingTime}</b><br/>' + 
-              'Elevation: <b>{TotalElevationGain} m</b><br/>' + 
-              'Estimated Avg Power: <b>{AverageWatts} w</b><br/>' + 
-              'Energy Output: <b>{KiloJoules} kJ</b><br/>' + 
-              'Avg Speed: <b>{AvgSpeed} km/h</b><br/>' + 
-              'Max Speed: <b>{MaxSpeed} km/h</b><br/>' + 
-              'Elapsed time: <b>{ElapsedTime}</b><br/><br/>' +
-              '<a href="https://www.strava.com/activities/{Id}">https://www.strava.com/activities/{Id}</a>',
-          },
-          visible: activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end,
-        });
-
-        // TODO(martin.letis): deduplicate visibility logic, trigger handler immediately?
-        arcgisTimeSlider.addEventListener('arcgisPropertyChange', event => {
-          if (event.detail.name != 'timeExtent') {
-            return;
-          }
-          polylineGraphic.visible = activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end;
-        });
-
-        graphicsLayer.add(polylineGraphic);
-      });
-
-      if (activities.length > 0) {
-        // Get oldest activity date.
-        // TODO(martin.letis): is the oldest activity always last?
-        const activity_start_dates = activities.map(activity => new Date(activity.start_date).getTime());
-        const activity_start_date = new Date(Math.min(...activity_start_dates));
-        activity_start_date.setHours(0, 0, 0, 0);
-
-        arcgisTimeSlider.fullTimeExtent.start = new Date(Math.min(arcgisTimeSlider.fullTimeExtent.start, activity_start_date));
-
-        // Recursive call for next page.
-        fetchAuthActivities(access_token, page + 1);
+    // TODO(martin.letis): deduplicate visibility logic, trigger handler immediately?
+    arcgisTimeSlider.addEventListener('arcgisPropertyChange', event => {
+      if (event.detail.name != 'timeExtent') {
         return;
       }
+      polylineGraphic.visible = activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end;
+    });
 
-      // Enable slider.
-      arcgisTimeSlider.disabled = false;
-    });  
+    graphicsLayer.add(polylineGraphic);
+  });
+
+  if (activities.length > 0) {
+    // Get oldest activity date.
+    // TODO(martin.letis): is the oldest activity always last?
+    const activity_start_dates = activities.map(activity => new Date(activity.start_date).getTime());
+    const activity_start_date = new Date(Math.min(...activity_start_dates));
+    activity_start_date.setHours(0, 0, 0, 0);
+
+    arcgisTimeSlider.fullTimeExtent.start = new Date(Math.min(arcgisTimeSlider.fullTimeExtent.start, activity_start_date));
+  } else {
+    // Enable slider.
+    arcgisTimeSlider.disabled = false;
+  }
 };
 
-initAuth().then(fetchAuthActivities);
+fetchActivities(displayActivities);
