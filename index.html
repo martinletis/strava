@@ -26,8 +26,8 @@
       .esri-time-slider {
         position: absolute;
         left: 20px;
+        right: 20px;
         bottom: 20px;
-        width: 90%;
       }
     </style>
 
@@ -52,7 +52,7 @@
   </head>
   <body>
     <arcgis-map basemap='arcgis/terrain' zoom='12'>
-      <arcgis-basemap-toggle position='bottom-right'></arcgis-basemap-toggle>
+      <arcgis-basemap-toggle position='top-right'></arcgis-basemap-toggle>
       <arcgis-time-slider disabled mode='time-window' position='manual'></arcgis-time-slider>
     </arcgis-map>
     <script type='module' src='map.js' async></script>
