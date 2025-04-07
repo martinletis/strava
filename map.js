@@ -7,19 +7,16 @@ arcgisBasemapToggle.nextBasemap = 'arcgis/light-gray'
 
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(
-    position => {
-      arcgisMap.center = [position.coords.longitude, position.coords.latitude];
-    },
+    position => arcgisMap.center = position.coords,
     positionError => console.warn(positionError));
 } else {
   console.warn('Geolocation not available');
 }
 
-const [Graphic, Circle, FeatureLayer, GraphicsLayer] = await $arcgis.import([
+const [Graphic, Circle, FeatureLayer] = await $arcgis.import([
   '@arcgis/core/Graphic.js',
   '@arcgis/core/geometry/Circle.js',
   '@arcgis/core/layers/FeatureLayer.js',
-  '@arcgis/core/layers/GraphicsLayer.js',
 ]);
 
 const cityOfSydneyLayer = new FeatureLayer({
@@ -40,9 +37,7 @@ const cityOfSydneyLayer = new FeatureLayer({
   visible: false,
 });
 
-const graphicsLayer = new GraphicsLayer();
-
-arcgisMap.addLayers([cityOfSydneyLayer, graphicsLayer]);
+arcgisMap.addLayer(cityOfSydneyLayer);
 
 const circle5k = new Graphic({
   geometry: new Circle({
@@ -74,7 +69,7 @@ const circle10k = new Graphic({
   visible: false,
 });
 
-graphicsLayer.addMany([circle5k, circle10k]);
+arcgisMap.componentOnReady().then(() => arcgisMap.graphics.addMany([circle5k, circle10k]));
 
 const now = new Date();
 const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -114,8 +109,8 @@ arcgisTimeSlider.stops = {
   },
 };
 arcgisTimeSlider.timeExtent = {
- 'end': end,
- 'start': start,
+  'end': end,
+  'start': start,
 };
 
 // https://www.nsw.gov.au/media-releases/covid-19-restrictions-tightened-across-greater-sydney
@@ -234,7 +229,7 @@ const displayActivities = function(activities) {
       polylineGraphic.visible = activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end;
     });
 
-    graphicsLayer.add(polylineGraphic);
+    arcgisMap.componentOnReady().then(() => arcgisMap.graphics.add(polylineGraphic));
   });
 
   if (activities.length > 0) {
