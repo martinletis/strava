@@ -7,7 +7,7 @@ arcgisBasemapToggle.nextBasemap = 'arcgis/light-gray'
 
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(
-    position => arcgisMap.center = position.coords,
+    position => arcgisMap.center = [position.coords.longitude, position.coords.latitude],
     positionError => console.warn(positionError));
 } else {
   console.warn('Geolocation not available');
