@@ -182,11 +182,11 @@ const WIDTH = {
 const displayActivities = function(activities) {
   activities.forEach(activity => {
     const activity_start_date = new Date(activity.start_date);
-    const paths = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
-    const polylineGraphic = new Graphic({
+    const points = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
+    const graphic = new Graphic({
       geometry: {
-        type: 'polyline',
-        paths: paths,
+        type: 'multipoint',
+        points: points,
       },
       symbol: {
         type: 'simple-line',
@@ -229,10 +229,16 @@ const displayActivities = function(activities) {
       if (event.detail.name != 'timeExtent') {
         return;
       }
-      polylineGraphic.visible = activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end;
+      graphic.visible = activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end;
     });
 
-    arcgisMap.componentOnReady().then(() => arcgisMap.graphics.add(polylineGraphic));
+    arcgisMap.componentOnReady().then(() => arcgisMap.graphics.add(graphic));
+
+    // If the view isn't already centered - by 'position' or a previous activity - center it on this activity.
+    if (!arcgisMap.center) {
+      arcgisMap.center = graphic.geometry.extent.center;
+      arcgisMap.zoom = 10;
+    }
   });
 
   if (activities.length > 0) {
