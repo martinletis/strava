@@ -2,6 +2,8 @@ const url = new URL(window.location.href);
 const debug = url.searchParams.has('debug');
 
 function initAuth() {
+  console.debug('initAuth()');
+
   const CLIENT_ID = 69382;
   const CLIENT_SECRET = '5bcd3a399f4c849a2ffadf249eccecabbbaddca9';
 
@@ -15,7 +17,7 @@ function initAuth() {
     url.searchParams.delete('code');
     url.searchParams.delete('scope');
     url.searchParams.delete('state');
-    console.log('Fetching token...');
+    console.log('fetch(%s)', tokenUrl.toString());
     return fetch(tokenUrl, {method: 'POST'})
       .then(response => response.json())
       .then(data => {
@@ -43,7 +45,7 @@ function initAuth() {
     tokenUrl.searchParams.append('client_secret', CLIENT_SECRET);
     tokenUrl.searchParams.append('grant_type', 'refresh_token');
     tokenUrl.searchParams.append('refresh_token', token.refresh_token);
-    console.log('Refreshing token...');
+    console.log('fetch(%s)', tokenUrl.toString());
     return fetch(tokenUrl, {method: 'POST'})
       .then(response => response.json())
       .then(data => {
@@ -56,6 +58,7 @@ function initAuth() {
 }
 
 function fetchAuthActivities(access_token, callback, page=1) {
+  console.debug('fetchAuthActivities(%s, %d)', access_token, page);
   if (!access_token) {
     return;
   }
@@ -70,6 +73,7 @@ function fetchAuthActivities(access_token, callback, page=1) {
     activitiesUrl.searchParams.set('per_page', url.searchParams.get('per_page') || 100);
   }
 
+  console.debug('fetch(%s)', activitiesUrl);
   return fetch(activitiesUrl, {headers: {'Authorization': 'Bearer ' + access_token}})
     .then(response => response.json())
     .then(activities => {
@@ -81,6 +85,7 @@ function fetchAuthActivities(access_token, callback, page=1) {
 }
 
 function fetchActivities(callback) {
+  console.debug('fetchActivities()');
   initAuth().then(access_token => fetchAuthActivities(access_token, callback));
 }
 

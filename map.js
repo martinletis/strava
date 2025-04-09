@@ -1,13 +1,17 @@
 import { fetchActivities } from "./activities.js";
 
+console.debug('document.querySelector("arcgis-map")');
 const arcgisMap = document.querySelector('arcgis-map');
 
+console.debug('document.querySelector("arcgis-basemap-toggle")');
 const arcgisBasemapToggle = document.querySelector('arcgis-basemap-toggle');
-arcgisBasemapToggle.nextBasemap = 'arcgis/light-gray'
+arcgisBasemapToggle.nextBasemap = 'arcgis/light-gray';
 
 if (navigator.geolocation) {
+  console.debug('navigator.geolocation.getCurrentPosition()');
   navigator.geolocation.getCurrentPosition(
     position => {
+      console.debug('position.coords=%O', position.coords);
       arcgisMap.center = [position.coords.longitude, position.coords.latitude];
       arcgisMap.zoom = 12;
     },
@@ -16,12 +20,14 @@ if (navigator.geolocation) {
   console.warn('Geolocation not available');
 }
 
+console.debug('$arcgis.import(...)');
 const [Graphic, Circle, FeatureLayer] = await $arcgis.import([
   '@arcgis/core/Graphic.js',
   '@arcgis/core/geometry/Circle.js',
   '@arcgis/core/layers/FeatureLayer.js',
 ]);
 
+console.debug('cityOfSydneyLayer = new FeatureLayer(...)');
 const cityOfSydneyLayer = new FeatureLayer({
   portalItem: {
     id: '6e8360afd7f9499ab9425b2d17db730d',
@@ -40,8 +46,10 @@ const cityOfSydneyLayer = new FeatureLayer({
   visible: false,
 });
 
+console.debug('arcgisMap.addLayer(cityOfSydneyLayer)');
 arcgisMap.addLayer(cityOfSydneyLayer);
 
+console.debug('circle5k = new Graphic(...)');
 const circle5k = new Graphic({
   geometry: new Circle({
     center: [151.19562741241154, -33.87180353506704],
@@ -57,6 +65,7 @@ const circle5k = new Graphic({
   visible: false,
 });
 
+console.debug('circle10k = new Graphic(...)');
 const circle10k = new Graphic({
   geometry: new Circle({
     center: [151.19562741241154, -33.87180353506704],
@@ -72,13 +81,19 @@ const circle10k = new Graphic({
   visible: false,
 });
 
-arcgisMap.componentOnReady().then(() => arcgisMap.graphics.addMany([circle5k, circle10k]));
+console.debug('arcgisMap.componentOnReady() (circles)');
+arcgisMap.componentOnReady().then(() => {
+  console.debug('arcgisMap.componentOnReady() => arcgisMap.graphics.addMany(circles)');
+  arcgisMap.graphics.addMany([circle5k, circle10k]);
+});
 
 const now = new Date();
 const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 const start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate() + 1);
 
+console.debug('document.querySelector("arcgis-time-slider")');
 const arcgisTimeSlider = document.querySelector('arcgis-time-slider');
+console.debug('arcgisTimeSlider.actions=[...]');
 arcgisTimeSlider.actions = [
   {
     id: '12m',
@@ -101,16 +116,19 @@ arcgisTimeSlider.actions = [
     title: 'Sydney 5k Lockdown',
   },
 ];
+console.debug('arcgisTimeSlider.fullTimeExtent={...}');
 arcgisTimeSlider.fullTimeExtent = {
   'end': end,
   'start': start,
 };
+console.debug('arcgisTimeSlider.stops={...}');
 arcgisTimeSlider.stops = {
   interval: {
     value: 1,
     unit: 'days',
   },
 };
+console.debug('arcgisTimeSlider.timeExtent={...}');
 arcgisTimeSlider.timeExtent = {
   'end': end,
   'start': start,
@@ -126,7 +144,9 @@ const _10K_END = new Date(1629036060000);
 // https://www.nsw.gov.au/media-releases/roadmap-to-recovery-reveals-path-forward-for-all-nsw
 const _5K_END = new Date(1633870860000);
 
+console.debug('arcgisTimeSlider.addEventListener("arcgisTriggerAction", ...)');
 arcgisTimeSlider.addEventListener('arcgisTriggerAction', event => {
+  console.debug('arcgisTriggerAction(%O)', event.detail.action);
   switch(event.detail.action.id) {
     case '12m':
       arcgisTimeSlider.timeExtent = {
@@ -155,7 +175,10 @@ arcgisTimeSlider.addEventListener('arcgisTriggerAction', event => {
       console.error('Invalid action ID: ' + event.action.id);
   }
 });
+
+console.debug('arcgisTimeSlider.addEventListener("arcgisPropertyChange", ...)');
 arcgisTimeSlider.addEventListener('arcgisPropertyChange', event => {
+  console.debug('arcgisPropertyChange("%s") (circles)', event.detail.name);
   if (event.detail.name != 'timeExtent') {
     return;
   }
@@ -180,7 +203,9 @@ const WIDTH = {
 };
 
 const displayActivities = function(activities) {
+  console.debug('displayActivities(%O)', activities);
   activities.forEach(activity => {
+    console.debug('activity=%O', activity);
     const activity_start_date = new Date(activity.start_date);
     const points = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
     const graphic = new Graphic({
@@ -225,17 +250,24 @@ const displayActivities = function(activities) {
     });
 
     // TODO(martin.letis): deduplicate visibility logic, trigger handler immediately?
+    console.debug('arcgisTimeSlider.addEventListener("arcgisPropertyChange", ...) (%d)', activity.id);
     arcgisTimeSlider.addEventListener('arcgisPropertyChange', event => {
+      console.debug('arcgisPropertyChange("%s") (activity=%d)', event.detail.name, activity.id);
       if (event.detail.name != 'timeExtent') {
         return;
       }
       graphic.visible = activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end;
     });
 
-    arcgisMap.componentOnReady().then(() => arcgisMap.graphics.add(graphic));
+    console.debug('arcgisMap.componentOnReady() (%d)', activity.id);
+    arcgisMap.componentOnReady().then(() => {
+      console.debug('arcgisMap.componentOnReady() => arcgisMap.graphics.add(%d)', activity.id);
+      arcgisMap.graphics.add(graphic);
+    });
 
     // If the view isn't already centered - by 'position' or a previous activity - center it on this activity.
     if (!arcgisMap.center) {
+      console.debug('graphic.geometry.extent.center=%O', graphic.geometry.extent.center);
       arcgisMap.center = graphic.geometry.extent.center;
       arcgisMap.zoom = 10;
     }
@@ -248,9 +280,11 @@ const displayActivities = function(activities) {
     const activity_start_date = new Date(Math.min(...activity_start_dates));
     activity_start_date.setHours(0, 0, 0, 0);
 
+    console.debug('arcgisTimeSlider.fullTimeExtent.start=...');
     arcgisTimeSlider.fullTimeExtent.start = new Date(Math.min(arcgisTimeSlider.fullTimeExtent.start, activity_start_date));
   } else {
     // Enable slider.
+    console.debug('arcgisTimeSlider.disabled=false');
     arcgisTimeSlider.disabled = false;
   }
 };
