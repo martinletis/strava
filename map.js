@@ -176,7 +176,7 @@ function handleCoords(coords) {
     }
   });
 
-  console.debug('arcgisTimeSlider.addEventListener("arcgisPropertyChange", ...)');
+  console.debug('arcgisTimeSlider.addEventListener("arcgisPropertyChange", ...) (circles)');
   arcgisTimeSlider.addEventListener('arcgisPropertyChange', event => {
     console.debug('arcgisPropertyChange("%s") (circles)', event.detail.name);
     if (event.detail.name != 'timeExtent') {
