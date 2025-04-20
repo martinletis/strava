@@ -15,12 +15,9 @@ function handleCoords(coords) {
   const arcgisMap = document.querySelector('arcgis-map');
 
   if (coords) {
-    console.debug('arcgisMap.componentOnReady() (center)');
-    arcgisMap.componentOnReady().then(() => {
-      console.debug('arcgisMap.center=%O', coords);
-      arcgisMap.center = [coords.longitude, coords.latitude];
-      arcgisMap.zoom = 12;
-    });
+    console.debug('arcgisMap.center=%O', coords);
+    arcgisMap.center = [coords.longitude, coords.latitude];
+    arcgisMap.zoom = 12;
   }
 
   console.debug('document.querySelector("arcgis-basemap-toggle")');
