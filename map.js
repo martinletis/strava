@@ -64,6 +64,8 @@ function handleCoords(coords) {
     },
     visible: false,
   });
+  console.debug('graphicsLayer.add(circle5k)');
+  graphicsLayer.add(circle5k);
 
   console.debug('circle10k = new Graphic(...)');
   const circle10k = new Graphic({
@@ -80,9 +82,8 @@ function handleCoords(coords) {
     },
     visible: false,
   });
-
-  console.debug('graphicsLayer.addMany(circles)');
-  graphicsLayer.addMany([circle5k, circle10k]);
+  console.debug('graphicsLayer.add(circle10k)');
+  graphicsLayer.add(circle10k);
 
   const now = new Date();
   const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
