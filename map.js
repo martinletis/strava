@@ -114,16 +114,6 @@ function handleCoords(coords) {
     }
   });
 
-  console.debug('arcgisTimeSlider.addEventListener("arcgisPropertyChange", ...) (circles)');
-  arcgisTimeSlider.addEventListener('arcgisPropertyChange', event => {
-    console.debug('arcgisPropertyChange("%s") (circles)', event.detail.name);
-    if (event.detail.name != 'timeExtent') {
-      return;
-    }
-    circle10k.visible = arcgisTimeSlider.timeExtent.start >= _10K_START && arcgisTimeSlider.timeExtent.end <= _10K_END;
-    circle5k.visible = cityOfSydneyLayer.visible = arcgisTimeSlider.timeExtent.start >= _10K_END && arcgisTimeSlider.timeExtent.end <= _5K_END;
-  });
-
   console.debug('cityOfSydneyLayer = new FeatureLayer(...)');
   const cityOfSydneyLayer = new FeatureLayer({
     portalItem: {
@@ -164,8 +154,6 @@ function handleCoords(coords) {
     },
     visible: false,
   });
-  console.debug('graphicsLayer.add(circle5k)');
-  graphicsLayer.add(circle5k);
 
   console.debug('circle10k = new Graphic(...)');
   const circle10k = new Graphic({
@@ -182,8 +170,19 @@ function handleCoords(coords) {
     },
     visible: false,
   });
-  console.debug('graphicsLayer.add(circle10k)');
-  graphicsLayer.add(circle10k);
+
+  console.debug('arcgisTimeSlider.addEventListener("arcgisPropertyChange", ...) (circles)');
+  arcgisTimeSlider.addEventListener('arcgisPropertyChange', event => {
+    console.debug('arcgisPropertyChange("%s") (circles)', event.detail.name);
+    if (event.detail.name != 'timeExtent') {
+      return;
+    }
+    circle10k.visible = arcgisTimeSlider.timeExtent.start >= _10K_START && arcgisTimeSlider.timeExtent.end <= _10K_END;
+    circle5k.visible = cityOfSydneyLayer.visible = arcgisTimeSlider.timeExtent.start >= _10K_END && arcgisTimeSlider.timeExtent.end <= _5K_END;
+  });
+
+  console.debug('graphicsLayer.add(circles)');
+  graphicsLayer.addMany([circle5k, circle10k]);
 
   const COLORS = {
     'Walk': 'blue',
