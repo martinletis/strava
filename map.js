@@ -1,5 +1,19 @@
 import { fetchActivities } from './activities.js';
 
+const NOW = new Date();
+const END = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate() + 1);
+const START = new Date(NOW.getFullYear() - 1, NOW.getMonth(), NOW.getDate() + 1);
+
+// https://www.nsw.gov.au/media-releases/covid-19-restrictions-tightened-across-greater-sydney
+const _10K_START = new Date(1625814000000);
+
+// https://www.nsw.gov.au/media-releases/increased-fines-test-and-isolate-payments-and-new-compliance-measures-as-nsw-battles
+const _10K_END = new Date(1629036060000);
+
+// https://www.nsw.gov.au/media-releases/roadmap-to-freedom-unveiled-for-fully-vaccinated
+// https://www.nsw.gov.au/media-releases/roadmap-to-recovery-reveals-path-forward-for-all-nsw
+const _5K_END = new Date(1633870860000);
+
 console.debug('$arcgis.import(...)');
 const [Graphic, Circle, FeatureLayer, GraphicsLayer] = await $arcgis.import([
   '@arcgis/core/Graphic.js',
@@ -23,6 +37,92 @@ function handleCoords(coords) {
   console.debug('document.querySelector("arcgis-basemap-toggle")');
   const arcgisBasemapToggle = document.querySelector('arcgis-basemap-toggle');
   arcgisBasemapToggle.nextBasemap = 'arcgis/light-gray';
+
+  console.debug('document.querySelector("arcgis-time-slider")');
+  const arcgisTimeSlider = document.querySelector('arcgis-time-slider');
+
+  console.debug('arcgisTimeSlider.fullTimeExtent={...}');
+  arcgisTimeSlider.fullTimeExtent = {
+    end: END,
+    start: START,
+  };
+  console.debug('arcgisTimeSlider.timeExtent={...}');
+  arcgisTimeSlider.timeExtent = {
+    end: END,
+    start: START,
+  };
+  console.debug('arcgisTimeSlider.stops={...}');
+  arcgisTimeSlider.stops = {
+    interval: {
+      value: 1,
+      unit: 'days',
+    },
+  };
+  console.debug('arcgisTimeSlider.actions=[...]');
+  arcgisTimeSlider.actions = [
+    {
+      id: '12m',
+      icon: 'calendar',
+      title: 'Last 12 Months',
+    },
+    {
+      id: 'all',
+      icon: 'calendar',
+      title: 'All Time',
+    },
+    {
+      id: 'lockdown10k',
+      icon: 'lock',
+      title: 'Sydney 10k Lockdown',
+    },
+    {
+      id: 'lockdown5k',
+      icon: 'lock',
+      title: 'Sydney 5k Lockdown',
+    },
+  ];
+
+  console.debug('arcgisTimeSlider.addEventListener("arcgisTriggerAction", ...)');
+  arcgisTimeSlider.addEventListener('arcgisTriggerAction', event => {
+    console.debug('arcgisTriggerAction(%O)', event.detail.action);
+    switch(event.detail.action.id) {
+      case '12m':
+        arcgisTimeSlider.timeExtent = {
+         'end': END,
+         'start': START,
+        };
+        break;
+      case 'all':
+        arcgisTimeSlider.timeExtent = arcgisTimeSlider.fullTimeExtent;
+        break;
+      case 'lockdown10k':
+        arcgisTimeSlider.timeExtent = {
+          start: _10K_START,
+          end: _10K_END,
+        };
+        arcgisMap.goTo(circle10k);
+        break;
+      case 'lockdown5k':
+        arcgisTimeSlider.timeExtent = {
+          start: _10K_END,
+          end: _5K_END,
+        };
+        arcgisMap.goTo(circle5k);
+        break;
+      default:
+        console.error('Invalid action ID: ' + event.action.id);
+    }
+  });
+
+  console.debug('arcgisTimeSlider.addEventListener("arcgisPropertyChange", ...) (circles)');
+  arcgisTimeSlider.addEventListener('arcgisPropertyChange', event => {
+    console.debug('arcgisPropertyChange("%s") (circles)', event.detail.name);
+    if (event.detail.name != 'timeExtent') {
+      return;
+    }
+    circle10k.visible = arcgisTimeSlider.timeExtent.start >= _10K_START && arcgisTimeSlider.timeExtent.end <= _10K_END;
+    circle5k.visible = cityOfSydneyLayer.visible = arcgisTimeSlider.timeExtent.start >= _10K_END && arcgisTimeSlider.timeExtent.end <= _5K_END;
+  });
 
   console.debug('cityOfSydneyLayer = new FeatureLayer(...)');
   const cityOfSydneyLayer = new FeatureLayer({
@@ -84,106 +184,6 @@ function handleCoords(coords) {
   });
   console.debug('graphicsLayer.add(circle10k)');
   graphicsLayer.add(circle10k);
-
-  const now = new Date();
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  const start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate() + 1);
-
-  console.debug('document.querySelector("arcgis-time-slider")');
-  const arcgisTimeSlider = document.querySelector('arcgis-time-slider');
-  console.debug('arcgisTimeSlider.actions=[...]');
-  arcgisTimeSlider.actions = [
-    {
-      id: '12m',
-      icon: 'calendar',
-      title: 'Last 12 Months',
-    },
-    {
-      id: 'all',
-      icon: 'calendar',
-      title: 'All Time',
-    },
-    {
-      id: 'lockdown10k',
-      icon: 'lock',
-      title: 'Sydney 10k Lockdown',
-    },
-    {
-      id: 'lockdown5k',
-      icon: 'lock',
-      title: 'Sydney 5k Lockdown',
-    },
-  ];
-  console.debug('arcgisTimeSlider.fullTimeExtent={...}');
-  arcgisTimeSlider.fullTimeExtent = {
-    end: end,
-    start: start,
-  };
-  console.debug('arcgisTimeSlider.stops={...}');
-  arcgisTimeSlider.stops = {
-    interval: {
-      value: 1,
-      unit: 'days',
-    },
-  };
-  console.debug('arcgisTimeSlider.timeExtent={...}');
-  arcgisTimeSlider.timeExtent = {
-    end: end,
-    start: start,
-  };
-
-  // https://www.nsw.gov.au/media-releases/covid-19-restrictions-tightened-across-greater-sydney
-  const _10K_START = new Date(1625814000000);
-
-  // https://www.nsw.gov.au/media-releases/increased-fines-test-and-isolate-payments-and-new-compliance-measures-as-nsw-battles
-  const _10K_END = new Date(1629036060000);
-
-  // https://www.nsw.gov.au/media-releases/roadmap-to-freedom-unveiled-for-fully-vaccinated
-  // https://www.nsw.gov.au/media-releases/roadmap-to-recovery-reveals-path-forward-for-all-nsw
-  const _5K_END = new Date(1633870860000);
-
-  console.debug('arcgisTimeSlider.addEventListener("arcgisTriggerAction", ...)');
-  arcgisTimeSlider.addEventListener('arcgisTriggerAction', event => {
-    console.debug('arcgisTriggerAction(%O)', event.detail.action);
-    switch(event.detail.action.id) {
-      case '12m':
-        arcgisTimeSlider.timeExtent = {
-         'end': end,
-         'start': start,
-        };
-        break;
-      case 'all':
-        arcgisTimeSlider.timeExtent = arcgisTimeSlider.fullTimeExtent;
-        break;
-      case 'lockdown10k':
-        arcgisTimeSlider.timeExtent = {
-          start: _10K_START,
-          end: _10K_END,
-        };
-        arcgisMap.goTo(circle10k);
-        break;
-      case 'lockdown5k':
-        arcgisTimeSlider.timeExtent = {
-          start: _10K_END,
-          end: _5K_END,
-        };
-        arcgisMap.goTo(circle5k);
-        break;
-      default:
-        console.error('Invalid action ID: ' + event.action.id);
-    }
-  });
-
-  console.debug('arcgisTimeSlider.addEventListener("arcgisPropertyChange", ...) (circles)');
-  arcgisTimeSlider.addEventListener('arcgisPropertyChange', event => {
-    console.debug('arcgisPropertyChange("%s") (circles)', event.detail.name);
-    if (event.detail.name != 'timeExtent') {
-      return;
-    }
-    circle10k.visible = arcgisTimeSlider.timeExtent.start >= _10K_START && arcgisTimeSlider.timeExtent.end <= _10K_END;
-    circle5k.visible = cityOfSydneyLayer.visible = arcgisTimeSlider.timeExtent.start >= _10K_END && arcgisTimeSlider.timeExtent.end <= _5K_END;
-  });
-
 
   const COLORS = {
     'Walk': 'blue',
