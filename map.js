@@ -116,8 +116,8 @@ function handleCoords(coords) {
   ];
   console.debug('arcgisTimeSlider.fullTimeExtent={...}');
   arcgisTimeSlider.fullTimeExtent = {
-    'end': end,
-    'start': start,
+    end: end,
+    start: start,
   };
   console.debug('arcgisTimeSlider.stops={...}');
   arcgisTimeSlider.stops = {
@@ -128,8 +128,8 @@ function handleCoords(coords) {
   };
   console.debug('arcgisTimeSlider.timeExtent={...}');
   arcgisTimeSlider.timeExtent = {
-    'end': end,
-    'start': start,
+    end: end,
+    start: start,
   };
 
   // https://www.nsw.gov.au/media-releases/covid-19-restrictions-tightened-across-greater-sydney
