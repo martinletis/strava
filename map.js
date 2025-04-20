@@ -1,10 +1,11 @@
 import { fetchActivities } from './activities.js';
 
 console.debug('$arcgis.import(...)');
-const [Graphic, Circle, FeatureLayer] = await $arcgis.import([
+const [Graphic, Circle, FeatureLayer, GraphicsLayer] = await $arcgis.import([
   '@arcgis/core/Graphic.js',
   '@arcgis/core/geometry/Circle.js',
   '@arcgis/core/layers/FeatureLayer.js',
+  '@arcgis/core/layers/GraphicsLayer.js',
 ]);
 
 function handleCoords(coords) {
@@ -48,6 +49,9 @@ function handleCoords(coords) {
   console.debug('arcgisMap.addLayer(cityOfSydneyLayer)');
   arcgisMap.addLayer(cityOfSydneyLayer);
 
+  const graphicsLayer = new GraphicsLayer();
+  arcgisMap.addLayer(graphicsLayer);
+
   console.debug('circle5k = new Graphic(...)');
   const circle5k = new Graphic({
     geometry: new Circle({
@@ -80,11 +84,8 @@ function handleCoords(coords) {
     visible: false,
   });
 
-  console.debug('arcgisMap.componentOnReady() (circles)');
-  arcgisMap.componentOnReady().then(() => {
-    console.debug('arcgisMap.componentOnReady() => arcgisMap.graphics.addMany(circles)');
-    arcgisMap.graphics.addMany([circle5k, circle10k]);
-  });
+  console.debug('graphicsLayer.addMany(circles)');
+  graphicsLayer.addMany([circle5k, circle10k]);
 
   const now = new Date();
   const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -258,11 +259,8 @@ function handleCoords(coords) {
         graphic.visible = activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end;
       });
 
-      console.debug('arcgisMap.componentOnReady() (%d)', activity.id);
-      arcgisMap.componentOnReady().then(() => {
-        console.debug('arcgisMap.componentOnReady() => arcgisMap.graphics.add(%d)', activity.id);
-        arcgisMap.graphics.add(graphic);
-      });
+      console.debug('graphicsLayer.add(%d)', activity.id);
+      graphicsLayer.add(graphic);
 
       // If the view isn't already centered - by 'coords' or a previous activity - center it on this activity.
       if (!coords) {
