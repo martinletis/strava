@@ -31,10 +31,6 @@ function handleCoords(arcgisMap, coords) {
     arcgisMap.zoom = 12;
   }
 
-  console.debug('document.querySelector("arcgis-basemap-toggle")');
-  const arcgisBasemapToggle = document.querySelector('arcgis-basemap-toggle');
-  arcgisBasemapToggle.nextBasemap = 'arcgis/light-gray';
-
   console.debug('document.querySelector("arcgis-time-slider")');
   const arcgisTimeSlider = document.querySelector('arcgis-time-slider');
 
