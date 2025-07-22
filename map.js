@@ -202,7 +202,7 @@ const COLORS = {
   'Ride': 'red',
   'Hike': 'green',
   'Run': 'brown',
-  'Sail': 'yellow',
+  'Sail': 'orange',
 };
 const WIDTH = {
   'Walk': 1.0,
