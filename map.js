@@ -220,8 +220,9 @@ fetchActivities(activities => {
     const points = google.maps.geometry.encoding.decodePath(activity.map.summary_polyline).map(latlng => [latlng.lng(), latlng.lat()]);
     const graphic = new Graphic({
       geometry: {
-        type: 'multipoint',
-        points: points,
+        // Using 'polyline' as 'multipoint' does not work with popupTemplate (4.33).
+        type: 'polyline',
+        paths: [points],
       },
       symbol: {
         type: 'simple-line',
