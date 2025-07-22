@@ -162,6 +162,23 @@ arcgisTimeSlider.addEventListener('arcgisTriggerAction', event => {
   }
 });
 
+console.debug('activitiesLayer = new GraphicsLayer(...)');
+const activitiesLayer = new GraphicsLayer({
+  popupTemplate: {
+    title: '<b>{Name}</b><br/><small>{StartDate}</small>',
+    content: 
+      'Distance: <b>{Distance} km</b><br/>' + 
+      'Moving Time: <b>{MovingTime}</b><br/>' + 
+      'Elevation: <b>{TotalElevationGain} m</b><br/>' + 
+      'Estimated Avg Power: <b>{AverageWatts} w</b><br/>' + 
+      'Energy Output: <b>{KiloJoules} kJ</b><br/>' + 
+      'Avg Speed: <b>{AvgSpeed} km/h</b><br/>' + 
+      'Max Speed: <b>{MaxSpeed} km/h</b><br/>' + 
+      'Elapsed time: <b>{ElapsedTime}</b><br/><br/>' +
+      '<a href="https://www.strava.com/activities/{Id}">https://www.strava.com/activities/{Id}</a>',
+  },
+});
+
 console.debug('graphicsLayer = new GraphicsLayer(...)');
 const graphicsLayer = new GraphicsLayer();
 
@@ -171,8 +188,8 @@ graphicsLayer.addMany([circle5k, circle10k]);
 console.debug('arcgisMap.viewOnReady()');
 await arcgisMap.viewOnReady();
 
-console.debug('arcgisMap.map.addMany(cityOfSydneyLayer, graphicsLayer)');
-arcgisMap.map.addMany([cityOfSydneyLayer, graphicsLayer]);
+console.debug('arcgisMap.map.addMany(cityOfSydneyLayer, activitiesLayer, graphicsLayer)');
+arcgisMap.map.addMany([cityOfSydneyLayer, activitiesLayer, graphicsLayer]);
 
 function handleCoords(arcgisMap, coords) {
   console.debug('handleCoords(%O)', coords);
@@ -241,20 +258,6 @@ fetchActivities(activities => {
         AvgSpeed: (Math.round(activity.average_speed * 3600 / 100) / 10).toLocaleString(),
         MaxSpeed: (Math.round(activity.max_speed * 3600 / 100) / 10).toLocaleString(),
         ElapsedTime: new Date(activity.elapsed_time * 1000).toISOString().substr(11, 8),
-        
-      },
-      popupTemplate: {
-        title: '<b>{Name}</b><br/><small>{StartDate}</small>',
-        content: 
-          'Distance: <b>{Distance} km</b><br/>' + 
-          'Moving Time: <b>{MovingTime}</b><br/>' + 
-          'Elevation: <b>{TotalElevationGain} m</b><br/>' + 
-          'Estimated Avg Power: <b>{AverageWatts} w</b><br/>' + 
-          'Energy Output: <b>{KiloJoules} kJ</b><br/>' + 
-          'Avg Speed: <b>{AvgSpeed} km/h</b><br/>' + 
-          'Max Speed: <b>{MaxSpeed} km/h</b><br/>' + 
-          'Elapsed time: <b>{ElapsedTime}</b><br/><br/>' +
-          '<a href="https://www.strava.com/activities/{Id}">https://www.strava.com/activities/{Id}</a>',
       },
       visible: activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end,
     });
@@ -269,8 +272,8 @@ fetchActivities(activities => {
       graphic.visible = activity_start_date >= arcgisTimeSlider.timeExtent.start && activity_start_date <= arcgisTimeSlider.timeExtent.end;
     });
 
-    console.debug('graphicsLayer.add(%d)', activity.id);
-    graphicsLayer.add(graphic);
+    console.debug('activitiesLayer.add(%d)', activity.id);
+    activitiesLayer.add(graphic);
 
     // If the view isn't already centered - by 'coords' or a previous activity - center it on this activity.
     if (!arcgisMap.center) {
