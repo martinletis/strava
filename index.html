@@ -23,7 +23,7 @@
         height: 100%;
         width: 100%;
       }
-      .esri-time-slider {
+      #slider {
         position: absolute;
         left: 20px;
         right: 20px;
@@ -39,21 +39,20 @@
     </script>
 
     <!-- Load Calcite -->
-    <script type='module' src='https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js'></script>
+    <script type="module" src="https://js.arcgis.com/calcite-components/3.3.3/calcite.esm.js"></script>
 
     <!-- Load the ArcGIS Maps SDK for JavaScript core API -->
-    <link rel='stylesheet' href='https://js.arcgis.com/4.33/esri/themes/light/main.css'>
-    <script src='https://js.arcgis.com/4.33/'></script>
+    <script src='https://js.arcgis.com/4.34/'></script>
 
     <!-- Load map components -->
-    <script type='module' src='https://js.arcgis.com/4.33/map-components'></script>
+    <script type='module' src='https://js.arcgis.com/4.34/map-components'></script>
 
     <script src='https://maps.googleapis.com/maps/api/js?libraries=geometry'></script>
   </head>
   <body>
     <arcgis-map basemap='arcgis/terrain'>
-      <arcgis-basemap-toggle position='top-right' next-basemap='arcgis/light-gray'></arcgis-basemap-toggle>
-      <arcgis-time-slider disabled mode='time-window' position='manual'></arcgis-time-slider>
+      <arcgis-basemap-toggle slot='top-right' next-basemap='arcgis/light-gray'></arcgis-basemap-toggle>
+      <arcgis-time-slider id='slider' disabled mode='time-window'></arcgis-time-slider>
     </arcgis-map>
     <script type='module' src='map.js' async></script>
   </body>
